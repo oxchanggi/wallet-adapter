@@ -1,4 +1,4 @@
-import { ChainType } from "../chains/Chain";
+import { ChainType, IChain } from "../chains/Chain";
 import { CallbackManager } from "./CallbackManager";
 import { DappMetadata } from "./types";
 
@@ -11,13 +11,13 @@ export interface IConnector {
     disconnect(): Promise<void>;
     getConnectedAddresses(): Promise<string[]>;
     getChainId(): Promise<string>;
-    init(): Promise<void>;
     handleEventConnect(address: string, chainId: string): Promise<void>;
     handleEventDisconnect(address: string): Promise<void>;
     handleEventChainChanged(chainId: string): Promise<void>;
     handleEventAccountChanged(address: string[]): Promise<void>;
     registerConnectorCallback(callback: IConnectorCallback): void;
     unregisterConnectorCallback(callback: IConnectorCallback): void;
+    createWalletClient(chain: IChain<any>): any;
     isInstalled(): Promise<boolean>;
     get chainType(): ChainType;
 }
@@ -39,10 +39,10 @@ export abstract class Connector implements IConnector {
     abstract disconnect(): Promise<void>;
     abstract getConnectedAddresses(): Promise<string[]>;
     abstract getChainId(): Promise<string>;
-    abstract init(): Promise<void>;
     abstract get chainType(): ChainType;
     abstract setupEventListeners(): Promise<void>;
     abstract isInstalled(): Promise<boolean>;
+    abstract createWalletClient(chain: IChain<any>): any;
 
     async handleEventConnect(address: string, chainId?: string): Promise<void> {
         this.callbackManager.notifyConnect(address, chainId);

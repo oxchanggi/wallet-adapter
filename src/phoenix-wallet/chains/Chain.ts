@@ -1,7 +1,8 @@
 export interface IChainConfig {
     id: string;
     name: string;
-    rpcUrl: string;
+    publicRpcUrl: string;
+    privateRpcUrl: string;
     explorerUrl: string;
     chainId: number;
     nativeCurrency: {
@@ -25,14 +26,17 @@ export enum ChainType {
 export abstract class Chain<T> implements IChain<T> {
     id: string;
     name: string;
-    rpcUrl: string;
+    publicRpcUrl: string;
+    privateRpcUrl: string;
     explorerUrl: string;
     chainId: number;
     nativeCurrency: { name: string; symbol: string; decimals: number; };
+    
     constructor(config: IChain<T>) {
         this.id = config.id;
         this.name = config.name;
-        this.rpcUrl = config.rpcUrl;
+        this.publicRpcUrl = config.publicRpcUrl;
+        this.privateRpcUrl = config.privateRpcUrl;
         this.explorerUrl = config.explorerUrl;
         this.chainId = config.chainId;
         this.nativeCurrency = config.nativeCurrency;

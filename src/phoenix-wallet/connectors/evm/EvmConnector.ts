@@ -1,14 +1,16 @@
-import { BrowserProvider, id, JsonRpcSigner } from "ethers";
+import { BrowserProvider, id, JsonRpcSigner, Wallet } from "ethers";
 import { ConnectorConfig, ConnectorInterface, ConnectorState, DappMetadata } from "../types";
 import { IWallet } from "../../wallets/IWallet";
 import { EvmTransaction } from "../../wallets/EvmWallet";
 import { Connector } from "../IConnector";
-import { Chain, ChainType } from "../../chains/Chain";
+import { Chain, ChainType, IChain } from "../../chains/Chain";
+import { createWalletClient, custom } from "viem";
+import { EvmChain } from "../../chains/EvmChain";
 
 export abstract class EvmConnector extends Connector {
   protected activeAddress: string | undefined = undefined;
   protected activeChainId: string | undefined = undefined;
-  protected provider: BrowserProvider | null = null;
+  protected provider: any = null;
 
   constructor(id: string, config: ConnectorConfig, dappMetadata: DappMetadata) {
     super(id, config.name, config.logo, dappMetadata);
@@ -33,6 +35,34 @@ export abstract class EvmConnector extends Connector {
       }
     }
     super.handleEventAccountChanged(addresses);
+  }
+
+  createWalletClient(chain: EvmChain) {
+    const client = createWalletClient({
+      chain: {
+        blockExplorers: {
+          default: {
+            name: chain.chainName,
+            url: chain.explorerUrl
+          }
+        },
+        id: parseInt(this.activeChainId!),
+        name: chain.chainName,
+        nativeCurrency: {
+          name: chain.chainName,
+          symbol: chain.chainName,
+          decimals: 18
+        },
+        rpcUrls: {
+          default: {
+            http: [chain.privateRpcUrl]
+          }
+        }
+      },
+      transport: custom(this.provider)
+    })
+    
+    return client;
   }
 }
 

@@ -33,7 +33,7 @@ export interface ConnectorInterface<T> {
 export interface WalletProviderProps {
   children: React.ReactNode;
   connectors: IConnector[];
-  chainConfigs?: IChainConfig[];
+  chainConfigs: IChainConfig[];
 }
 
 export interface WalletContextState {

@@ -61,11 +61,11 @@ export class PhantomEvmConnector extends EvmConnector {
         await this.init();
         
         if (!this.ethereum) {
-          throw new Error("Phantom Ethereum provider not available");
+          throw new Error("Phantom EVM provider not available");
         }
       }
 
-      this.provider = new BrowserProvider(this.ethereum);
+      this.provider = this.ethereum;
       
       // Request accounts
       const accounts = await this.getConnectedAddresses();
@@ -74,7 +74,7 @@ export class PhantomEvmConnector extends EvmConnector {
         throw new Error("No accounts found");
       }
 
-      this.activeChainId = (await this.provider?.getNetwork())?.chainId.toString();
+      this.activeChainId = await this.getChainId();
 
       if (this.activeAddress != accounts[0]) {
         this.activeAddress = accounts[0];

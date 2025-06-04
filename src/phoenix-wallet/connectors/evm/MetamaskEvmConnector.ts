@@ -16,7 +16,7 @@ export class MetamaskEvmConnector extends EvmConnector {
     }, dappMetadata);
   }
 
-  async init(): Promise<void> {
+  protected async init(): Promise<void> {
     if (this.sdk) {
       return;
     }
@@ -62,12 +62,10 @@ export class MetamaskEvmConnector extends EvmConnector {
         await this.init();
       }
       
-      const ethereum = this.sdk?.getProvider();
-      if (!ethereum) {
+      this.provider = this.sdk?.getProvider();
+      if (!this.provider) {
         throw new Error("MetaMask provider not available");
       }
-
-      this.provider = new BrowserProvider(ethereum);
       
       // Request accounts
       const accounts = await this.getConnectedAddresses();

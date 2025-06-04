@@ -3,7 +3,12 @@ import { useWalletConnectors } from '../contexts/WalletContext';
 import { ConnectorStatus } from '../connectors/types';
 import { IConnector } from '../connectors/IConnector';
 import { useWalletConnectorEvent } from './useWalletConnectorEvent';
-
+import { IWallet } from '../wallets/IWallet';
+import { ChainType, IChain } from '../chains/Chain';
+import { EvmWallet } from '../wallets/EvmWallet';
+import { EvmConnector } from '../connectors';
+import { EvmChain } from '../chains/EvmChain';
+import { JsonRpcProvider } from 'ethers';
 // Interface for the connector-specific return values
 interface WalletState {
   connector: IConnector | null;
@@ -17,6 +22,7 @@ interface WalletState {
   chainId: string | null;
   connect: () => Promise<any>;
   disconnect: () => Promise<void>;
+  wallet: IWallet<any, IChain<any>, IConnector, any> | null;
 }
 
 /**
@@ -27,7 +33,7 @@ interface WalletState {
  */
 export function useWallet(connectorId: string): WalletState {
   const walletContext = useWalletConnectors();
-  const { connectors, activeConnectors, connectorStatuses } = walletContext;
+  const { connectors, activeConnectors, connectorStatuses, chainConfigs } = walletContext;
   
   // State for tracking transitional statuses (connecting, error)
   const [transitionalStatus, setTransitionalStatus] = useState<ConnectorStatus | null>(null);
@@ -215,6 +221,22 @@ export function useWallet(connectorId: string): WalletState {
     fetchConnectionData();
   }, [connector, status]);
 
+  const wallet = useMemo(() => {
+    if (status !== ConnectorStatus.CONNECTED || !connector || !address) {
+      return null;
+    }
+
+    if (connector.chainType === ChainType.EVM) {
+      const chain = chainConfigs.find(c => c.id === chainId && c.chainType === ChainType.EVM);
+      if (!chain) {
+        return null;
+      }
+      const evmChain = new EvmChain(chain.name, chain as IChain<JsonRpcProvider>);
+      return new EvmWallet(address, evmChain, connector as EvmConnector, connector.createWalletClient(evmChain));
+    } 
+    return null;
+  }, [status, address, chainId, connector, chainConfigs]);
+
   // Derive status booleans
   const isConnected = status === ConnectorStatus.CONNECTED;
   const isConnecting = status === ConnectorStatus.CONNECTING;
@@ -223,6 +245,7 @@ export function useWallet(connectorId: string): WalletState {
 
   return {
     connector,
+    wallet,
     status,
     isConnected,
     isConnecting,

@@ -9,7 +9,10 @@ export class EvmChain extends Chain<JsonRpcProvider> {
     constructor(chainName: string, config: IChain<JsonRpcProvider>) {
         super(config);
         this._chainName = chainName;
-        this._provider = new JsonRpcProvider(config.rpcUrl)
+        if (!config.privateRpcUrl) {
+            throw new Error(`RPC URL is required for ${chainName}`);
+        }
+        this._provider = new JsonRpcProvider(config.privateRpcUrl)
     }
 
     get chainName(): string {
