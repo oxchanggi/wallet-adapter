@@ -248,13 +248,6 @@ export function useWallet(connectorId: string): WalletState {
       // Call the connector's disconnect method
       await connector.disconnect();
       
-      // Status should be updated via event callback, but let's ensure it
-      setTimeout(() => {
-        if (status === ConnectorStatus.CONNECTED) {
-          setTransitionalStatus(ConnectorStatus.DISCONNECTED);
-          setAddress(null);
-        }
-      }, 500);
     } catch (error) {
       console.error(`Failed to disconnect from ${connectorId}:`, error);
       throw error;

@@ -10,7 +10,9 @@ import { EvmChain } from "../../chains/EvmChain";
 export abstract class EvmConnector extends Connector {
   protected activeAddress: string | undefined = undefined;
   protected activeChainId: string | undefined = undefined;
-  protected provider: any = null;
+  protected isInitialized: boolean = false;
+
+  abstract get provider(): any;
 
   constructor(id: string, config: ConnectorConfig, dappMetadata: DappMetadata) {
     super(id, config.name, config.logo, dappMetadata);
@@ -20,8 +22,32 @@ export abstract class EvmConnector extends Connector {
     return ChainType.EVM;
   }
 
+  async init(): Promise<void> {
+    if (!this.provider) {
+      throw new Error(this.name + " provider not found");
+    }
+
+    if (this.isInitialized) {
+      return;
+    }
+
+    this.isInitialized = true;
+
+    this.setupEventListeners();
+
+      // Check if we have a stored connection
+    this.checkStoredConnection();
+  }
+
   async isConnected(): Promise<boolean> {
     try {
+      if (this.storageConnectionStatusKey) {
+        const storedStatus = localStorage.getItem(this.storageConnectionStatusKey);
+        if (!storedStatus) {
+          return false;
+        }
+      }
+
       if (this.activeAddress) {
         return true;
       }
@@ -51,17 +77,15 @@ export abstract class EvmConnector extends Connector {
     super.handleEventAccountChanged(addresses);
   }
 
-  abstract init(): Promise<void> 
-
   async setupEventListeners(): Promise<void> {
     if (!this.provider) {
-      throw new Error(this.name+" provider not available");
+      throw new Error(this.name + " provider not available");
     }
-    
+
     this.provider.on('accountsChanged', (accounts: string[]) => {
       this.handleEventAccountChanged(accounts);
     });
-    
+
     this.provider.on('chainChanged', (chainId: string) => {
       this.activeChainId = chainId;
       this.handleEventChainChanged(chainId);
@@ -107,7 +131,7 @@ export abstract class EvmConnector extends Connector {
       },
       transport: custom(this.provider)
     })
-    
+
     return client;
   }
 
@@ -118,7 +142,7 @@ export abstract class EvmConnector extends Connector {
       }
 
       if (!this.provider) {
-        throw new Error(this.name+" provider not available");
+        throw new Error(this.name + " provider not available");
       }
 
       // Request accounts
@@ -135,10 +159,63 @@ export abstract class EvmConnector extends Connector {
         this.handleEventConnect(this.activeAddress, this.activeChainId);
       }
 
+      // Store connection status in localStorage
+      if (typeof localStorage !== 'undefined' && this.storageConnectionStatusKey) {
+        localStorage.setItem(this.storageConnectionStatusKey, 'connected');
+      }
+
       return { address: this.activeAddress, chainId: this.activeChainId };
       // Create and return the wallet
     } catch (error: any) {
       throw error;
+    }
+  }
+
+  get storageConnectionStatusKey(): string {
+    return `${this.id}_connection_status`;
+  }
+
+  private checkStoredConnection(): void {
+    if (typeof localStorage !== 'undefined' && this.storageConnectionStatusKey) {
+      const storedStatus = localStorage.getItem(this.storageConnectionStatusKey);
+      if (storedStatus === 'connected') {
+        // Attempt to reconnect based on stored state
+        this.getConnectedAddresses()
+          .then(addresses => {
+            if (addresses.length > 0) {
+              this.activeAddress = addresses[0];
+              this.getChainId().then(chainId => {
+                this.activeChainId = chainId;
+                this.handleEventConnect(this.activeAddress!, this.activeChainId);
+              });
+            } else {
+              // Clear stored connection if no addresses found
+              localStorage.removeItem(this.storageConnectionStatusKey);
+            }
+          })
+          .catch(() => {
+            localStorage.removeItem(this.storageConnectionStatusKey);
+          });
+      }
+    }
+  }
+
+  async disconnect(): Promise<void> {
+    // Store the current address before clearing it
+    const currentAddress = this.activeAddress;
+
+    // Clear the active address and chain ID
+    this.activeAddress = undefined;
+    this.activeChainId = undefined;
+
+    // Remove the connection status from localStorage
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(this.storageConnectionStatusKey);
+    }
+
+    // Emit the disconnect event if we have a provider and had an active address
+    if (this.provider && currentAddress) {
+      this.handleEventDisconnect(currentAddress);
     }
   }
 }

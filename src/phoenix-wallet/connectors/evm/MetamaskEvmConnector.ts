@@ -16,6 +16,10 @@ export class MetamaskEvmConnector extends EvmConnector {
     }, dappMetadata);
   }
 
+  get provider(): any {
+    return this.sdk?.getProvider();
+  }
+
   async init(): Promise<void> {
     if (this.sdk) {
       return;
@@ -27,9 +31,7 @@ export class MetamaskEvmConnector extends EvmConnector {
       },
     });
     await this.sdk.init();
-    this.provider = this.sdk?.getProvider();
-    this.setupEventListeners();
-
+    super.init();
   }
 
   async isInstalled(): Promise<boolean> {
