@@ -3,11 +3,11 @@
 import {
   BinanceEvmConnector,
   ChainType,
-  // MagicEdenEvmConnector,
-  // MetamaskEvmConnector,
-  // PhantomEvmConnector,
-  // RainbowEvmConnector,
-  // TrustWalletEvmConnector,
+  MagicEdenEvmConnector,
+  MetamaskEvmConnector,
+  PhantomEvmConnector,
+  RainbowEvmConnector,
+  TrustWalletEvmConnector,
   WalletProvider,
 } from "../phoenix-wallet";
 import { SimpleWalletConnect } from "./SimpleWalletConnect";
@@ -18,11 +18,11 @@ const dappMetadata = {
 };
 
 export const defaultConnectors = [
-  // new MetamaskEvmConnector(dappMetadata),
-  // new PhantomEvmConnector(dappMetadata),
-  // new TrustWalletEvmConnector(dappMetadata),
-  // new MagicEdenEvmConnector(dappMetadata),
-  // new RainbowEvmConnector(dappMetadata),
+  new MetamaskEvmConnector(dappMetadata),
+  new PhantomEvmConnector(dappMetadata),
+  new TrustWalletEvmConnector(dappMetadata),
+  new MagicEdenEvmConnector(dappMetadata),
+  new RainbowEvmConnector(dappMetadata),
   new BinanceEvmConnector(dappMetadata),
 ]
 
