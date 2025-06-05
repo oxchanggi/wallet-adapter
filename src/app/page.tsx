@@ -2,6 +2,7 @@
 
 import { RabbyEvmConnector } from "@/phoenix-wallet/connectors/evm/RabbyEvmConnector";
 import {
+  BinanceEvmConnector,
   ChainType,
   MagicEdenEvmConnector,
   MetamaskEvmConnector,
@@ -26,6 +27,7 @@ export const defaultConnectors = [
   new MagicEdenEvmConnector(dappMetadata),
   new RainbowEvmConnector(dappMetadata),
   new RabbyEvmConnector(dappMetadata),
+  new BinanceEvmConnector(dappMetadata),
 ];
 
 export const chainConfigs = [
@@ -57,6 +59,16 @@ export const chainConfigs = [
     explorerUrl: "https://sepolia.etherscan.io",
     chainId: 11155111,
     nativeCurrency: { name: "Sepolia", symbol: "ETH", decimals: 18 },
+    chainType: ChainType.EVM,
+  },
+  {
+    id: "56",
+    name: "BSC",
+    publicRpcUrl: "https://bsc-dataseed.binance.org",
+    privateRpcUrl: "https://bsc-dataseed.binance.org",
+    explorerUrl: "https://bscscan.com",
+    chainId: 56,
+    nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
     chainType: ChainType.EVM,
   },
 ];
