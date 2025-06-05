@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { useWallet } from "@/phoenix-wallet/hooks/useWallet";
 import { ConnectorStatus } from "@/phoenix-wallet/connectors/types";
+import { useWallet } from "@/phoenix-wallet/hooks/useWallet";
+import React, { useState } from "react";
 
 interface ConnectorItemProps {
   connectorId: string;
@@ -114,7 +114,7 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({
               }}
             />
           )}
-          <h3 className="font-medium text-lg">{connector.name}</h3>
+          <h3 className="font-medium text-lg text-black">{connector.name}</h3>
         </div>
         <div className="flex items-center">
           <span

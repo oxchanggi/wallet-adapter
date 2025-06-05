@@ -1,14 +1,17 @@
 "use client";
+
+import { RabbyEvmConnector } from "@/phoenix-wallet/connectors/evm/RabbyEvmConnector";
 import {
   ChainType,
   MagicEdenEvmConnector,
+  MetamaskEvmConnector,
+  PhantomEvmConnector,
   RainbowEvmConnector,
+  TrustWalletEvmConnector,
   WalletProvider,
 } from "../phoenix-wallet";
 import { SimpleWalletConnect } from "./SimpleWalletConnect";
-import { MetamaskEvmConnector, PhantomEvmConnector } from "../phoenix-wallet";
 import { CoinbaseEvmConnector } from "@/phoenix-wallet/connectors/evm/CoinbaseEvmConnector";
-import { RabbyEvmConnector } from "@/phoenix-wallet/connectors/evm/RabbyEvmConnector";
 
 const dappMetadata = {
   name: "Phoenix Wallet",
@@ -19,6 +22,7 @@ export const defaultConnectors = [
   new MetamaskEvmConnector(dappMetadata),
   new PhantomEvmConnector(dappMetadata),
   new CoinbaseEvmConnector(dappMetadata),
+  new TrustWalletEvmConnector(dappMetadata),
   new MagicEdenEvmConnector(dappMetadata),
   new RainbowEvmConnector(dappMetadata),
   new RabbyEvmConnector(dappMetadata),
