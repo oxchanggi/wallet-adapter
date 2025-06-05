@@ -4,17 +4,19 @@ export * from './chains/EvmChain';
 export * from './chains/SolanaChain';
 export * from './wallets/IWallet';
 
+export * from "./connectors/IConnector";
+export * from "./connectors/evm/EvmConnector";
+export * from "./connectors/evm/MetamaskEvmConnector";
+export * from "./connectors/evm/PhantomEvmConnector";
+export * from "./connectors/evm/MagicEdenEvmConnector";
+export * from "./connectors/solana/SolanaConnector";
+export * from "./connectors/evm/RainbowEvmConnector";
+export * from "./connectors/evm/OkxEvmConnector";
+export * from './connectors/evm/TrustWalletEvmConnector'
 export * from './connectors/evm/BinanceEvmConnector';
 export * from './connectors/evm/EvmConnector';
-export * from './connectors/evm/MagicEdenEvmConnector';
-export * from './connectors/evm/MetamaskEvmConnector';
-export * from './connectors/evm/PhantomEvmConnector';
-export * from './connectors/evm/RainbowEvmConnector';
-export * from './connectors/evm/TrustWalletEvmConnector';
-export * from './connectors/IConnector';
-export * from './connectors/index';
-export * from './connectors/solana/SolanaConnector';
-export * from './connectors/types';
+export * from "./connectors/types";
+export * from "./connectors/index";
 
 // Contexts
 export { useWalletConnectors, WalletProvider } from './contexts/WalletContext';
