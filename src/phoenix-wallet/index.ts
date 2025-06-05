@@ -8,7 +8,9 @@ export * from "./connectors/IConnector";
 export * from "./connectors/evm/EvmConnector";
 export * from "./connectors/evm/MetamaskEvmConnector";
 export * from "./connectors/evm/PhantomEvmConnector";
+export * from "./connectors/evm/MagicEdenEvmConnector";
 export * from "./connectors/solana/SolanaConnector";
+export * from "./connectors/evm/RainbowEvmConnector";
 export * from "./connectors/types";
 export * from "./connectors/index";
 

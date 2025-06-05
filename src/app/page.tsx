@@ -1,5 +1,10 @@
 "use client";
-import { ChainType, WalletProvider } from "../phoenix-wallet";
+import {
+  ChainType,
+  MagicEdenEvmConnector,
+  RainbowEvmConnector,
+  WalletProvider,
+} from "../phoenix-wallet";
 import { SimpleWalletConnect } from "./SimpleWalletConnect";
 import { MetamaskEvmConnector, PhantomEvmConnector } from "../phoenix-wallet";
 import { CoinbaseEvmConnector } from "@/phoenix-wallet/connectors/evm/CoinbaseEvmConnector";
@@ -13,6 +18,8 @@ export const defaultConnectors = [
   new MetamaskEvmConnector(dappMetadata),
   new PhantomEvmConnector(dappMetadata),
   new CoinbaseEvmConnector(dappMetadata),
+  new MagicEdenEvmConnector(dappMetadata),
+  new RainbowEvmConnector(dappMetadata),
 ];
 
 export const chainConfigs = [
