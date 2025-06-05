@@ -80,11 +80,24 @@ export function useWallet(connectorId: string): WalletState {
             const result = await connector.connect();
             
             if (result?.address) {
-              console.log(`Successfully reconnected to ${connectorId}`);
               setAddress(result.address);
               
               if (result.chainId) {
                 setChainId(result.chainId);
+                console.log(`Successfully reconnected to ${connectorId} and chain ${result.chainId}`);
+              } else {
+                // If chain ID is not available in the result, try to get it from the connector
+                try {
+                  const chainIdResult = await connector.getChainId();
+                  if (chainIdResult) {
+                    setChainId(chainIdResult);
+                    console.log(`Successfully reconnected to ${connectorId} and retrieved chain ${chainIdResult}`);
+                  } else {
+                    console.log(`Successfully reconnected to ${connectorId} but couldn't determine chain ID`);
+                  }
+                } catch (chainError) {
+                  console.error(`Connected to ${connectorId} but failed to get chain ID:`, chainError);
+                }
               }
             }
           }
@@ -199,6 +212,17 @@ export function useWallet(connectorId: string): WalletState {
               // Also set chainId if available
               if (result.chainId) {
                 setChainId(result.chainId);
+                console.log(`Setting chain ID to ${result.chainId}`);
+              } else {
+                // If chain ID is not available in the result, try to get it from the connector
+                connector.getChainId().then(chainIdResult => {
+                  if (chainIdResult) {
+                    setChainId(chainIdResult);
+                    console.log(`Got chain ID from connector: ${chainIdResult}`);
+                  }
+                }).catch(error => {
+                  console.error('Error getting chain ID:', error);
+                });
               }
             }
           }, 500);
@@ -246,6 +270,16 @@ export function useWallet(connectorId: string): WalletState {
           const addresses = await connector.getConnectedAddresses();
           if (addresses && addresses.length > 0) {
             setAddress(addresses[0]);
+            
+            // Also get the chain ID
+            try {
+              const currentChainId = await connector.getChainId();
+              if (currentChainId) {
+                setChainId(currentChainId);
+              }
+            } catch (chainError) {
+              console.error("Error getting chain ID:", chainError);
+            }
           } else {
             setAddress(null);
           }
@@ -269,10 +303,25 @@ export function useWallet(connectorId: string): WalletState {
     }
 
     if (connector.chainType === ChainType.EVM) {
+      // Find a chain config matching the current chainId
       const chain = chainConfigs.find(c => c.id === chainId && c.chainType === ChainType.EVM);
+      
       if (!chain) {
+        console.warn(`No chain config found for chainId: ${chainId}`);
+        // Attempt to get the chain ID again if it's not available
+        if (!chainId) {
+          connector.getChainId().then(newChainId => {
+            if (newChainId) {
+              console.log(`Updated chain ID to: ${newChainId}`);
+              setChainId(newChainId);
+            }
+          }).catch(error => {
+            console.error('Error getting chain ID:', error);
+          });
+        }
         return null;
       }
+      
       const evmChain = new EvmChain(chain.name, chain as IChain<JsonRpcProvider>);
       return new EvmWallet(address, evmChain, connector as EvmConnector, connector.createWalletClient(evmChain));
     } 

@@ -52,7 +52,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
               console.log(`Auto-reconnecting to ${connector.id}...`);
               const result = await connector.connect();
               if (result) {
-                console.log(`Successfully reconnected to ${connector.id}`);
+                console.log(`Successfully reconnected to ${connector.id} and chain ${result.chainId}`);
               }
             }
           } catch (error) {

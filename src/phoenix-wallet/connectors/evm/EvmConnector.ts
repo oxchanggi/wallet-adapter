@@ -27,7 +27,6 @@ export abstract class EvmConnector extends Connector {
       }
 
       const addresses = await this.getConnectedAddresses().catch(() => []);
-      console.log(addresses);
       return addresses.length > 0;
     } catch (error) {
       console.error(`Error checking if ${this.id} is connected:`, error);
@@ -142,15 +141,6 @@ export abstract class EvmConnector extends Connector {
       throw error;
     }
   }
-
-  async disconnect(): Promise<void> {
-    // No direct disconnect method in EIP-1193, but we can clear our local state
-    if (this.activeAddress) {
-        this.handleEventDisconnect(this.activeAddress);
-        this.activeAddress = undefined;
-        this.activeChainId = undefined;
-    }
-}
 }
 
 // Ensure TypeScript recognizes the ethereum property on window
