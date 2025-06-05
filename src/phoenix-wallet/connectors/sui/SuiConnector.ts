@@ -28,7 +28,7 @@ export interface SuiProvider {
   signAndExecuteTransactionBlock(
     input: SuiSignAndExecuteTransactionBlockInput
   ): Promise<SuiTransactionResponse>;
-  signTransactionBlock(
+  signTransaction(
     input: SuiSignTransactionBlockInput
   ): Promise<SuiSignedTransaction>;
   signMessage(

@@ -57,6 +57,10 @@ export class SuiWallet extends Wallet<
         throw new Error("Sui provider not available");
       }
 
+      if (!transaction.amount) {
+        transaction.amount = (transaction as any).value;
+      }
+
       let tx: Transaction;
 
       // Handle different transaction types
@@ -82,11 +86,13 @@ export class SuiWallet extends Wallet<
         );
       }
 
+      const _tx = await tx.toJSON();
+
       // Sign the transaction using the provider (correct method name)
-      const signedTransaction = await this.suiProvider.signTransactionBlock({
-        transactionBlock: tx as any, // TODO: fix this
-        account: this._address,
-        chain: this.chain.chainIdentifier,
+      const signedTransaction = await this.suiProvider.signTransaction({
+        transaction: _tx as any, // TODO: fix this
+        address: this._address,
+        networkID: this.chain.chainIdentifier,
       });
 
       return signedTransaction.signature;

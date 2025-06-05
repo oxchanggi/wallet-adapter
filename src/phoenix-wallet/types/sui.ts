@@ -47,9 +47,9 @@ export interface SuiSignAndExecuteTransactionBlockInput {
 }
 
 export interface SuiSignTransactionBlockInput {
-  transactionBlock: SuiTransactionBlock;
-  chain?: string;
-  account?: string;
+  transaction: SuiTransactionBlock;
+  networkID?: string;
+  address?: string;
 }
 
 export interface SuiSignMessageInput {
