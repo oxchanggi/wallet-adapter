@@ -2,8 +2,10 @@
 
 import {
   ChainType,
+  MagicEdenEvmConnector,
   MetamaskEvmConnector,
   PhantomEvmConnector,
+  RainbowEvmConnector,
   TrustWalletEvmConnector,
   WalletProvider,
 } from "../phoenix-wallet";
@@ -18,7 +20,9 @@ export const defaultConnectors = [
   new MetamaskEvmConnector(dappMetadata),
   new PhantomEvmConnector(dappMetadata),
   new TrustWalletEvmConnector(dappMetadata),
-];
+  new MagicEdenEvmConnector(dappMetadata),
+  new RainbowEvmConnector(dappMetadata),
+]
 
 export const chainConfigs = [
   {
