@@ -52,17 +52,7 @@ export const chainConfigs = [
     chainId: 11155111,
     nativeCurrency: { name: "Sepolia", symbol: "ETH", decimals: 18 },
     chainType: ChainType.EVM,
-  },
-  {
-    id: "7887",
-    name: "Kinto",
-    publicRpcUrl: "https://sepolia.infura.io/v3/YOUR_INFURA_KEY",
-    privateRpcUrl: "https://sepolia.infura.io/v3/YOUR_INFURA_KEY",
-    explorerUrl: "https://kintoscan.io/",
-    chainId: 7887,
-    nativeCurrency: { name: "Kinto", symbol: "ETH", decimals: 18 },
-    chainType: ChainType.EVM,
-  },
+  }
 ];
 
 
