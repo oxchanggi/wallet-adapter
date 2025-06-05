@@ -13,22 +13,22 @@ export class RainbowEvmConnector extends EvmConnector {
     );
   }
 
-    get provider(): any {
-        if (typeof window !== 'undefined' && window.rainbow) {
-            return window.rainbow;
-        } else if (typeof window !== 'undefined' && window.ethereum?.isRainbow) {
-            // Fallback to window.ethereum if it has isPhantom property
-            return window.ethereum;
-        }
+  get provider(): any {
+    if (typeof window !== 'undefined' && window.rainbow) {
+      return window.rainbow;
+    } else if (typeof window !== 'undefined' && window.ethereum?.isRainbow) {
+      // Fallback to window.ethereum if it has isPhantom property
+      return window.ethereum;
     }
+  }
 
-    async isInstalled(): Promise<boolean> {
-        // Check if Rainbow's Ethereum provider exists
-        if (typeof window !== 'undefined') {
-            return Boolean(window.rainbow || (window.ethereum?.isRainbow));
-        }
-        return false;
+  async isInstalled(): Promise<boolean> {
+    // Check if Rainbow's Ethereum provider exists
+    if (typeof window !== 'undefined') {
+      return Boolean(window.rainbow || window.ethereum?.isRainbow);
     }
+    return false;
+  }
 }
 
 declare global {

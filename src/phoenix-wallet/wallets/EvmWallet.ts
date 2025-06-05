@@ -1,62 +1,61 @@
-import { JsonRpcSigner, Wallet as EthersWallet } from "ethers";
-import { IWallet, Wallet } from "./IWallet";
-import { EvmChain } from "../chains/EvmChain";
-import { EvmConnector } from "../connectors";
-import { WalletClient } from "viem";
+import { JsonRpcSigner, Wallet as EthersWallet } from 'ethers';
+import { IWallet, Wallet } from './IWallet';
+import { EvmChain } from '../chains/EvmChain';
+import { EvmConnector } from '../connectors';
+import { WalletClient } from 'viem';
 
 export interface EvmTransaction {
-    to: string;
-    value: string;
-    data: string;
-    gasLimit?: string;
-    gasPrice?: string;
+  to: string;
+  value: string;
+  data: string;
+  gasLimit?: string;
+  gasPrice?: string;
 }
 
 export class EvmWallet extends Wallet<EvmTransaction, EvmChain, EvmConnector, WalletClient> {
-    constructor(_address: string, chain: EvmChain, connector: EvmConnector, walletClient: WalletClient) {
-        super(_address, chain, connector, walletClient);
-    }
+  constructor(_address: string, chain: EvmChain, connector: EvmConnector, walletClient: WalletClient) {
+    super(_address, chain, connector, walletClient);
+  }
 
-    async signTransaction(transaction: EvmTransaction): Promise<string> {
+  async signTransaction(transaction: EvmTransaction): Promise<string> {
+    const request = await this.walletClient.prepareTransactionRequest({
+      account: this._address as `0x${string}`,
+      to: transaction.to as `0x${string}`,
+      value: BigInt(transaction.value),
+      chain: this.walletClient.chain,
+    });
 
-        const request = await this.walletClient.prepareTransactionRequest({
-            account: this._address as `0x${string}`,
-            to: transaction.to as `0x${string}`,
-            value: BigInt(transaction.value),
-            chain: this.walletClient.chain
-        });
+    return await this.walletClient.signTransaction({
+      ...request,
+      account: this._address as `0x${string}`,
+    });
+  }
+  async signMessage(message: string): Promise<string> {
+    return await this.walletClient.signMessage({
+      account: this._address as `0x${string}`,
+      message: message,
+    });
+  }
+  get address(): string {
+    return this._address;
+  }
 
-        return await this.walletClient.signTransaction({
-            ...request,
-            account: this._address as `0x${string}`
-        });
-    }
-    async signMessage(message: string): Promise<string> {
-        return await this.walletClient.signMessage({ 
-            account: this._address as `0x${string}`,
-            message: message,
-          })
-    }
-    get address(): string {
-        return this._address;
-    }
+  sendTransaction(transaction: EvmTransaction): Promise<string> {
+    return this.walletClient.sendTransaction({
+      account: this._address as `0x${string}`,
+      to: transaction.to as `0x${string}`,
+      value: BigInt(transaction.value),
+      chain: this.walletClient.chain,
+    });
+  }
 
-    sendTransaction(transaction: EvmTransaction): Promise<string> {
-        return this.walletClient.sendTransaction({
-            account: this._address as `0x${string}`,
-            to: transaction.to as `0x${string}`,
-            value: BigInt(transaction.value),
-            chain: this.walletClient.chain
-        });
-    }
+  sendRawTransaction(transaction: string): Promise<string> {
+    return this.walletClient.sendRawTransaction({
+      serializedTransaction: transaction as `0x${string}`,
+    });
+  }
 
-    sendRawTransaction(transaction: string): Promise<string> {
-        return this.walletClient.sendRawTransaction({
-            serializedTransaction: transaction as `0x${string}`
-        });
-    }
-
-    get walletClient(): WalletClient {
-        return this._walletClient;
-    }
+  get walletClient(): WalletClient {
+    return this._walletClient;
+  }
 }

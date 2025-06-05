@@ -24,12 +24,7 @@ export const SimpleWalletConnect: React.FC = () => {
     error?: string;
   } | null>(null);
 
-  const {
-    wallet,
-    isConnected,
-    address,
-    chainId,
-  } = useWallet(selectedConnectorId);
+  const { wallet, isConnected, address, chainId } = useWallet(selectedConnectorId);
 
   const handleConnectorSelect = (connectorId: string) => {
     setSelectedConnectorId(connectorId);
@@ -44,13 +39,13 @@ export const SimpleWalletConnect: React.FC = () => {
       const signature = await wallet.signMessage(message);
       setOperationResult({
         type: 'success',
-        data: `Message signed successfully! Signature: ${signature}`
+        data: `Message signed successfully! Signature: ${signature}`,
       });
     } catch (error: any) {
       setOperationResult({
         type: 'error',
         data: 'Failed to sign message',
-        error: error.message
+        error: error.message,
       });
     }
   };
@@ -68,14 +63,14 @@ export const SimpleWalletConnect: React.FC = () => {
       const signedTx = await wallet.signTransaction(transaction);
       setOperationResult({
         type: 'success',
-        data: `Transaction signed successfully! Signed TX: ${signedTx.slice(0, 30)}...`
+        data: `Transaction signed successfully! Signed TX: ${signedTx.slice(0, 30)}...`,
       });
       setRawTransaction(signedTx);
     } catch (error: any) {
       setOperationResult({
         type: 'error',
         data: 'Failed to sign transaction',
-        error: error.message
+        error: error.message,
       });
     }
   };
@@ -93,13 +88,13 @@ export const SimpleWalletConnect: React.FC = () => {
       const txHash = await wallet.sendTransaction(transaction);
       setOperationResult({
         type: 'success',
-        data: `Transaction sent successfully! TX Hash: ${txHash}`
+        data: `Transaction sent successfully! TX Hash: ${txHash}`,
       });
     } catch (error: any) {
       setOperationResult({
         type: 'error',
         data: 'Failed to send transaction',
-        error: error.message
+        error: error.message,
       });
     }
   };
@@ -112,18 +107,16 @@ export const SimpleWalletConnect: React.FC = () => {
       const txHash = await wallet.sendRawTransaction(rawTransaction);
       setOperationResult({
         type: 'success',
-        data: `Raw transaction sent successfully! TX Hash: ${txHash}`
+        data: `Raw transaction sent successfully! TX Hash: ${txHash}`,
       });
     } catch (error: any) {
       setOperationResult({
         type: 'error',
         data: 'Failed to send raw transaction',
-        error: error.message
+        error: error.message,
       });
     }
   };
-
-
 
   return (
     <div className="p-6 max-w-3xl mx-auto bg-white">
@@ -136,10 +129,11 @@ export const SimpleWalletConnect: React.FC = () => {
           {connectors.map((connector) => (
             <button
               key={connector.id}
-              className={`px-4 py-2 rounded-lg border ${selectedConnectorId === connector.id
-                ? 'bg-black text-white border-black'
-                : 'bg-white text-black border-gray-300 hover:bg-gray-50'
-                }`}
+              className={`px-4 py-2 rounded-lg border ${
+                selectedConnectorId === connector.id
+                  ? 'bg-black text-white border-black'
+                  : 'bg-white text-black border-gray-300 hover:bg-gray-50'
+              }`}
               onClick={() => handleConnectorSelect(connector.id)}
             >
               {connector.name}
@@ -147,9 +141,7 @@ export const SimpleWalletConnect: React.FC = () => {
           ))}
         </div>
 
-        {selectedConnectorId && (
-          <ConnectorItem connectorId={selectedConnectorId} />
-        )}
+        {selectedConnectorId && <ConnectorItem connectorId={selectedConnectorId} />}
       </div>
 
       {/* Wallet Operations */}
@@ -157,17 +149,19 @@ export const SimpleWalletConnect: React.FC = () => {
         <div className="mt-8 space-y-8">
           <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
             <h3 className="text-lg font-semibold mb-3 text-black">Wallet Info</h3>
-            <p className="text-gray-800"><strong className="text-black">Address:</strong> <span className="font-mono text-black">{address}</span></p>
-            <p className="text-gray-800"><strong className="text-black">Chain ID:</strong> <span className="font-mono text-black">{chainId}</span></p>
+            <p className="text-gray-800">
+              <strong className="text-black">Address:</strong> <span className="font-mono text-black">{address}</span>
+            </p>
+            <p className="text-gray-800">
+              <strong className="text-black">Chain ID:</strong> <span className="font-mono text-black">{chainId}</span>
+            </p>
           </div>
 
           {/* Sign Message */}
           <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-200">
             <h3 className="text-lg font-semibold mb-3 text-black">Sign Message</h3>
             <div className="mb-3">
-              <label className="block text-sm font-medium text-black mb-1">
-                Message
-              </label>
+              <label className="block text-sm font-medium text-black mb-1">Message</label>
               <textarea
                 className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-black focus:border-black focus:outline-none transition placeholder-gray-400 text-black"
                 value={message}
@@ -189,35 +183,29 @@ export const SimpleWalletConnect: React.FC = () => {
             <h3 className="text-lg font-semibold mb-3 text-black">Sign Transaction</h3>
             <div className="space-y-3 mb-3">
               <div>
-                <label className="block text-sm font-medium text-black mb-1">
-                  To Address
-                </label>
+                <label className="block text-sm font-medium text-black mb-1">To Address</label>
                 <input
                   className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-black focus:border-black focus:outline-none transition placeholder-gray-400 text-black"
                   value={transactionData.to}
-                  onChange={(e) => setTransactionData(prev => ({ ...prev, to: e.target.value }))}
+                  onChange={(e) => setTransactionData((prev) => ({ ...prev, to: e.target.value }))}
                   placeholder="0xabc...def"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-black mb-1">
-                  Value (in wei)
-                </label>
+                <label className="block text-sm font-medium text-black mb-1">Value (in wei)</label>
                 <input
                   className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-black focus:border-black focus:outline-none transition placeholder-gray-400 text-black"
                   value={transactionData.value}
-                  onChange={(e) => setTransactionData(prev => ({ ...prev, value: e.target.value }))}
+                  onChange={(e) => setTransactionData((prev) => ({ ...prev, value: e.target.value }))}
                   placeholder="1000000000000000"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-black mb-1">
-                  Data
-                </label>
+                <label className="block text-sm font-medium text-black mb-1">Data</label>
                 <input
                   className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-black focus:border-black focus:outline-none transition placeholder-gray-400 text-black"
                   value={transactionData.data}
-                  onChange={(e) => setTransactionData(prev => ({ ...prev, data: e.target.value }))}
+                  onChange={(e) => setTransactionData((prev) => ({ ...prev, data: e.target.value }))}
                   placeholder="0x0123456789abcdef"
                 />
               </div>
@@ -233,9 +221,7 @@ export const SimpleWalletConnect: React.FC = () => {
           {/* Send Transaction */}
           <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-200">
             <h3 className="text-lg font-semibold mb-3 text-black">Send Transaction</h3>
-            <p className="text-sm text-gray-600 mb-3">
-              Uses the same transaction data as the Sign Transaction section
-            </p>
+            <p className="text-sm text-gray-600 mb-3">Uses the same transaction data as the Sign Transaction section</p>
             <button
               className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors shadow-sm"
               onClick={handleSendTransaction}
@@ -248,9 +234,7 @@ export const SimpleWalletConnect: React.FC = () => {
           <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-200">
             <h3 className="text-lg font-semibold mb-3 text-black">Send Raw Transaction</h3>
             <div className="mb-3">
-              <label className="block text-sm font-medium text-black mb-1">
-                Raw Transaction (hex)
-              </label>
+              <label className="block text-sm font-medium text-black mb-1">Raw Transaction (hex)</label>
               <textarea
                 className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-black focus:border-black focus:outline-none transition font-mono placeholder-gray-400 text-black"
                 value={rawTransaction}
@@ -271,25 +255,36 @@ export const SimpleWalletConnect: React.FC = () => {
 
       {/* Operation Result */}
       {operationResult && (
-        <div className={`mt-6 p-4 rounded-lg shadow-sm border ${operationResult.type === 'success' ? 'bg-gray-50 border-green-300' :
-          operationResult.type === 'error' ? 'bg-gray-50 border-red-300' :
-            'bg-gray-50 border-yellow-300'
-          }`}>
+        <div
+          className={`mt-6 p-4 rounded-lg shadow-sm border ${
+            operationResult.type === 'success'
+              ? 'bg-gray-50 border-green-300'
+              : operationResult.type === 'error'
+                ? 'bg-gray-50 border-red-300'
+                : 'bg-gray-50 border-yellow-300'
+          }`}
+        >
           <h3 className="font-medium mb-2 text-black">
-            {operationResult.type === 'success' ? '✅ Success' :
-              operationResult.type === 'error' ? '❌ Error' :
-                '⏳ Processing'}
+            {operationResult.type === 'success'
+              ? '✅ Success'
+              : operationResult.type === 'error'
+                ? '❌ Error'
+                : '⏳ Processing'}
           </h3>
-          <p className={
-            operationResult.type === 'success' ? 'text-black' :
-              operationResult.type === 'error' ? 'text-black' :
-                'text-black'
-          }>{operationResult.data}</p>
-          {operationResult.error && (
-            <p className="text-red-600 text-sm mt-1 font-medium">{operationResult.error}</p>
-          )}
+          <p
+            className={
+              operationResult.type === 'success'
+                ? 'text-black'
+                : operationResult.type === 'error'
+                  ? 'text-black'
+                  : 'text-black'
+            }
+          >
+            {operationResult.data}
+          </p>
+          {operationResult.error && <p className="text-red-600 text-sm mt-1 font-medium">{operationResult.error}</p>}
         </div>
       )}
     </div>
   );
-}; 
+};

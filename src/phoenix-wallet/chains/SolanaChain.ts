@@ -1,5 +1,5 @@
-import { Connection } from "@solana/web3.js";
-import { Chain, ChainType, IChain } from "./Chain";
+import { Connection } from '@solana/web3.js';
+import { Chain, ChainType, IChain } from './Chain';
 
 export class SolanaChain extends Chain<Connection> {
   private _chainName: string;

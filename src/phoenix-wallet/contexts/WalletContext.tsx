@@ -1,11 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
-import { 
-  WalletContextState, 
-  WalletProviderProps,
-  ConnectorStatus
-} from "../connectors/types";
-import { IConnector, IConnectorCallback } from "../connectors/IConnector";
-import { IChainConfig } from "../chains/Chain";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { WalletContextState, WalletProviderProps, ConnectorStatus } from '../connectors/types';
+import { IConnector, IConnectorCallback } from '../connectors/IConnector';
+import { IChainConfig } from '../chains/Chain';
 
 // Default empty arrays for context
 const DEFAULT_CONNECTORS: IConnector[] = [];
@@ -22,11 +18,11 @@ const WalletContext = createContext<WalletContextState>({
 
 export const useWalletConnectors = () => useContext(WalletContext);
 
-export const WalletProvider: React.FC<WalletProviderProps> = ({ 
-  children, 
+export const WalletProvider: React.FC<WalletProviderProps> = ({
+  children,
   connectors = [],
   chainConfigs = [],
-  reconnect = 'none'
+  reconnect = 'none',
 }) => {
   const [activeConnectors, setActiveConnectors] = useState<{ [key: string]: IConnector }>({});
   const [connectorStatuses, setConnectorStatuses] = useState<{ [key: string]: ConnectorStatus }>({});
@@ -34,7 +30,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
   // Initialize connector statuses
   useEffect(() => {
     const initialStatuses: { [key: string]: ConnectorStatus } = {};
-    connectors.forEach(connector => {
+    connectors.forEach((connector) => {
       initialStatuses[connector.id] = ConnectorStatus.DISCONNECTED;
     });
     setConnectorStatuses(initialStatuses);
@@ -70,27 +66,27 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
     const connectorCallback: IConnectorCallback = {
       async onConnect(connectorId: string, address: string, chainId?: string) {
         // When a connector connects, update its status and add it to active connectors
-        const connector = connectors.find(c => c.id === connectorId);
+        const connector = connectors.find((c) => c.id === connectorId);
         if (connector) {
-          setConnectorStatuses(prev => ({
+          setConnectorStatuses((prev) => ({
             ...prev,
-            [connectorId]: ConnectorStatus.CONNECTED
+            [connectorId]: ConnectorStatus.CONNECTED,
           }));
-          
-          setActiveConnectors(prev => ({ 
-            ...prev, 
-            [connectorId]: connector 
+
+          setActiveConnectors((prev) => ({
+            ...prev,
+            [connectorId]: connector,
           }));
         }
       },
       async onDisconnect(connectorId: string, address: string) {
         // When a connector disconnects, update its status and remove from active connectors
-        setConnectorStatuses(prev => ({
+        setConnectorStatuses((prev) => ({
           ...prev,
-          [connectorId]: ConnectorStatus.DISCONNECTED
+          [connectorId]: ConnectorStatus.DISCONNECTED,
         }));
-        
-        setActiveConnectors(prev => {
+
+        setActiveConnectors((prev) => {
           const newState = { ...prev };
           delete newState[connectorId];
           return newState;
@@ -103,33 +99,32 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
       async onAccountChanged(connectorId: string, addresses: string[]) {
         // Account changes don't affect connection status
         console.log(`Accounts changed for ${connectorId} to ${addresses.join(', ')}`);
-      }
+      },
     };
 
     // Register the callback with all connectors
-    connectors.forEach(connector => {
+    connectors.forEach((connector) => {
       connector.registerConnectorCallback(connectorCallback);
     });
 
     // Cleanup when the component unmounts
     return () => {
-      connectors.forEach(connector => {
+      connectors.forEach((connector) => {
         connector.unregisterConnectorCallback(connectorCallback);
       });
     };
   }, [connectors]);
 
-  const contextValue = useMemo<WalletContextState>(() => ({
-    chainConfigs,
-    connectors,
-    activeConnectors,
-    connectorStatuses,
-    reconnect,
-  }), [chainConfigs, connectors, activeConnectors, connectorStatuses, reconnect]);
-
-  return (
-    <WalletContext.Provider value={contextValue}>
-        {children}  
-    </WalletContext.Provider>
+  const contextValue = useMemo<WalletContextState>(
+    () => ({
+      chainConfigs,
+      connectors,
+      activeConnectors,
+      connectorStatuses,
+      reconnect,
+    }),
+    [chainConfigs, connectors, activeConnectors, connectorStatuses, reconnect]
   );
-}; 
+
+  return <WalletContext.Provider value={contextValue}>{children}</WalletContext.Provider>;
+};

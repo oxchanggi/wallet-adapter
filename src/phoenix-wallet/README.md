@@ -21,11 +21,7 @@ yarn add @phoenix-wallet/wallet
 
 ```tsx
 import React from 'react';
-import { 
-  WalletProvider, 
-  WalletConnectButton, 
-  defaultConnectors 
-} from '@phoenix-wallet/wallet';
+import { WalletProvider, WalletConnectButton, defaultConnectors } from '@phoenix-wallet/wallet';
 
 function App() {
   return (
@@ -35,9 +31,7 @@ function App() {
           <h1>My Web3 App</h1>
           <WalletConnectButton />
         </header>
-        <main>
-          {/* Your app content */}
-        </main>
+        <main>{/* Your app content */}</main>
       </div>
     </WalletProvider>
   );
@@ -52,14 +46,7 @@ export default App;
 import { useWallet } from '@phoenix-wallet/wallet';
 
 function MyComponent() {
-  const { 
-    wallet, 
-    isConnected, 
-    isConnecting, 
-    connect, 
-    disconnect, 
-    error 
-  } = useWallet();
+  const { wallet, isConnected, isConnecting, connect, disconnect, error } = useWallet();
 
   const handleSignMessage = async () => {
     if (wallet) {
@@ -84,10 +71,7 @@ function MyComponent() {
       ) : (
         <div>
           <p>Not connected</p>
-          <button 
-            onClick={() => connect('metamask')} 
-            disabled={isConnecting}
-          >
+          <button onClick={() => connect('metamask')} disabled={isConnecting}>
             {isConnecting ? 'Connecting...' : 'Connect MetaMask'}
           </button>
         </div>
@@ -103,12 +87,7 @@ function MyComponent() {
 You can create and use your own wallet connectors:
 
 ```tsx
-import { 
-  WalletProvider, 
-  EvmConnector, 
-  SolanaConnector, 
-  Chain 
-} from '@phoenix-wallet/wallet';
+import { WalletProvider, EvmConnector, SolanaConnector, Chain } from '@phoenix-wallet/wallet';
 
 // Create custom connectors
 const myConnectors = [
@@ -120,14 +99,10 @@ const myConnectors = [
 ];
 
 function App() {
-  return (
-    <WalletProvider connectors={myConnectors}>
-      {/* Your app components */}
-    </WalletProvider>
-  );
+  return <WalletProvider connectors={myConnectors}>{/* Your app components */}</WalletProvider>;
 }
 ```
 
 ## License
 
-MIT 
+MIT

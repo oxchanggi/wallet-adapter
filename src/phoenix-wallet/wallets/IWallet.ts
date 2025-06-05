@@ -1,5 +1,5 @@
-import { Chain, IChain } from "../chains/Chain";
-import { IConnector } from "../connectors/IConnector";
+import { Chain, IChain } from '../chains/Chain';
+import { IConnector } from '../connectors/IConnector';
 
 export interface IWallet<T, K extends Chain<any>, Q extends IConnector, M> {
   chain: K;
@@ -33,4 +33,3 @@ export abstract class Wallet<T, K extends Chain<any>, Q extends IConnector, M> i
     return this._walletClient;
   }
 }
-

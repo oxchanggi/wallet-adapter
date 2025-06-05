@@ -1,5 +1,4 @@
-
-import { ConnectorConfig, ConnectorInterface, ConnectorState, DappMetadata } from "../types";
+import { ConnectorConfig, ConnectorInterface, ConnectorState, DappMetadata } from '../types';
 import { Connector } from '../IConnector';
 import { ChainType, IChain } from '../../chains/Chain';
 import { BaseMessageSignerWalletAdapter, WalletReadyState } from '@solana/wallet-adapter-base';
@@ -16,7 +15,7 @@ export abstract class SolanaConnector extends Connector {
 
   async init(): Promise<void> {
     if (!this.adapter) {
-      throw new Error(this.name + " adapter not found");
+      throw new Error(this.name + ' adapter not found');
     }
 
     if (this.isInitialized) {
@@ -31,19 +30,19 @@ export abstract class SolanaConnector extends Connector {
   async isInstalled(): Promise<boolean> {
     await this.init();
     return this.adapter.readyState == WalletReadyState.Installed;
- }
+  }
 
   get chainType(): ChainType {
     return ChainType.SOLANA;
   }
 
-  async connect(): Promise<{ address: string; chainId: string; }> {
+  async connect(): Promise<{ address: string; chainId: string }> {
     await this.init();
-    console.log("Connecting to Solana");
+    console.log('Connecting to Solana');
     await this.adapter.connect();
     return {
       address: this.adapter.publicKey?.toBase58() ?? '',
-      chainId: 'solana'
+      chainId: 'solana',
     };
   }
 
@@ -62,7 +61,7 @@ export abstract class SolanaConnector extends Connector {
   }
 
   async setupEventListeners(): Promise<void> {
-    if (!await this.isInstalled()) return;
+    if (!(await this.isInstalled())) return;
 
     this.adapter.on('connect', () => {
       if (this.activeAddress != this.adapter.publicKey?.toBase58() && this.adapter.publicKey?.toBase58()) {
@@ -75,17 +74,17 @@ export abstract class SolanaConnector extends Connector {
       if (this.activeAddress) {
         this.handleEventDisconnect(this.activeAddress);
         this.activeAddress = undefined;
-      } 
+      }
     });
   }
 
   async isConnected(): Promise<boolean> {
-    return false
+    return false;
   }
 
   createWalletClient(chain: IChain<any>) {
     if (!this.adapter) {
-      throw new Error("Solana adapter not found");
+      throw new Error('Solana adapter not found');
     }
     return new SolanaWalletClient(this.adapter);
   }
@@ -96,4 +95,4 @@ declare global {
   interface Window {
     solana?: any;
   }
-} 
+}
