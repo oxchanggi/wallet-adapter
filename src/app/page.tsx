@@ -1,11 +1,21 @@
-'use client';
-import { ChainType, SlushConnector, WalletProvider } from "../phoenix-wallet";
-import { SimpleWalletConnect } from "./SimpleWalletConnect";
+"use client";
+
 import {
+  BinanceEvmConnector,
+  ChainType,
+  MagicEdenEvmConnector,
   MetamaskEvmConnector,
   PhantomEvmConnector,
-  PhantomSuiConnector,
+  RainbowEvmConnector,
+  TrustWalletEvmConnector,
+  MagicEdenEvmConnector,
+  OkxEvmConnector,
+  RainbowEvmConnector,
+  WalletProvider,
+  SlushConnector,
 } from "../phoenix-wallet";
+import { SimpleWalletConnect } from "./SimpleWalletConnect";
+import { MetamaskEvmConnector, PhantomEvmConnector, PhantomSuiConnector } from "../phoenix-wallet";
 
 const dappMetadata = {
   name: "Phoenix Wallet",
@@ -15,6 +25,11 @@ const dappMetadata = {
 export const defaultConnectors = [
   new MetamaskEvmConnector(dappMetadata),
   new PhantomEvmConnector(dappMetadata),
+  new TrustWalletEvmConnector(dappMetadata),
+  new MagicEdenEvmConnector(dappMetadata),
+  new RainbowEvmConnector(dappMetadata),
+  new OkxEvmConnector(dappMetadata),
+  new BinanceEvmConnector(dappMetadata),
   new PhantomSuiConnector(dappMetadata),
 ];
 
@@ -50,6 +65,16 @@ export const chainConfigs = [
     chainType: ChainType.EVM,
   },
   {
+    id: "56",
+    name: "BSC",
+    publicRpcUrl: "https://bsc-dataseed.binance.org",
+    privateRpcUrl: "https://bsc-dataseed.binance.org",
+    explorerUrl: "https://bscscan.com",
+    chainId: 56,
+    nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
+    chainType: ChainType.EVM,
+  },
+  {
     id: "sui:mainnet",
     name: "Sui Mainnet",
     publicRpcUrl: "https://fullnode.mainnet.sui.io:443",
@@ -61,10 +86,13 @@ export const chainConfigs = [
   },
 ];
 
-
 export default function Home() {
   return (
-    <WalletProvider connectors={defaultConnectors} chainConfigs={chainConfigs}>
+    <WalletProvider
+      connectors={defaultConnectors}
+      chainConfigs={chainConfigs}
+      reconnect="auto"
+    >
       <SimpleWalletConnect />
     </WalletProvider>
   );

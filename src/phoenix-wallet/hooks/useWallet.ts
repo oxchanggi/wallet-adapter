@@ -1,7 +1,13 @@
-import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
-import { useWalletConnectors } from '../contexts/WalletContext';
-import { ConnectorStatus } from '../connectors/types';
+import { JsonRpcProvider } from 'ethers';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ChainType, IChain } from '../chains/Chain';
+import { EvmChain } from '../chains/EvmChain';
+import { EvmConnector } from '../connectors';
 import { IConnector } from '../connectors/IConnector';
+import { ConnectorStatus } from '../connectors/types';
+import { useWalletConnectors } from '../contexts/WalletContext';
+import { EvmWallet } from '../wallets/EvmWallet';
+import { IWallet } from '../wallets/IWallet';
 import { useWalletConnectorEvent } from './useWalletConnectorEvent';
 import { IWallet } from '../wallets/IWallet';
 import { ChainType, IChain } from '../chains/Chain';
@@ -26,6 +32,7 @@ interface WalletState {
   chainId: string | null;
   connect: () => Promise<any>;
   disconnect: () => Promise<void>;
+  switchChain: (chainId: string) => Promise<void>;
   wallet: IWallet<any, IChain<any>, IConnector, any> | null;
 }
 
@@ -49,6 +56,7 @@ export function useWallet(connectorId: string): WalletState {
 
   // Track connection attempts to prevent race conditions
   const connectionAttemptRef = useRef<number>(0);
+  const hasAttemptedReconnect = useRef<boolean>(false);
 
   // Get the connector instance
   const connector = useMemo(
@@ -64,6 +72,59 @@ export function useWallet(connectorId: string): WalletState {
     if (transitionalStatus) return transitionalStatus;
     return connectorStatuses[connectorId] || ConnectorStatus.DISCONNECTED;
   }, [connectorStatuses, connectorId, transitionalStatus]);
+
+  // Attempt auto-reconnect if needed
+  useEffect(() => {
+    const attemptReconnect = async () => {
+      if (!connector || hasAttemptedReconnect.current || reconnect !== 'auto') {
+        return;
+      }
+
+      hasAttemptedReconnect.current = true;
+
+      try {
+        // Only try to reconnect if we're not already connected and the connector has an active session
+        if (status === ConnectorStatus.DISCONNECTED) {
+          const isConnectedResult = await connector.isConnected();
+
+          if (isConnectedResult) {
+            console.log(`Auto-reconnecting to ${connectorId}...`);
+            setTransitionalStatus(ConnectorStatus.CONNECTING);
+
+            // Call the connector's connect method
+            const result = await connector.connect();
+
+            if (result?.address) {
+              setAddress(result.address);
+
+              if (result.chainId) {
+                setChainId(result.chainId);
+                console.log(`Successfully reconnected to ${connectorId} and chain ${result.chainId}`);
+              } else {
+                // If chain ID is not available in the result, try to get it from the connector
+                try {
+                  const chainIdResult = await connector.getChainId();
+                  if (chainIdResult) {
+                    setChainId(chainIdResult);
+                    console.log(`Successfully reconnected to ${connectorId} and retrieved chain ${chainIdResult}`);
+                  } else {
+                    console.log(`Successfully reconnected to ${connectorId} but couldn't determine chain ID`);
+                  }
+                } catch (chainError) {
+                  console.error(`Connected to ${connectorId} but failed to get chain ID:`, chainError);
+                }
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`Failed to auto-reconnect to ${connectorId}:`, error);
+        setTransitionalStatus(ConnectorStatus.ERROR);
+      }
+    };
+
+    attemptReconnect();
+  }, [connector, connectorId, status, reconnect]);
 
   // Check if wallet is installed
   useEffect(() => {
@@ -177,6 +238,20 @@ export function useWallet(connectorId: string): WalletState {
               // Also set chainId if available
               if (result.chainId) {
                 setChainId(result.chainId);
+                console.log(`Setting chain ID to ${result.chainId}`);
+              } else {
+                // If chain ID is not available in the result, try to get it from the connector
+                connector
+                  .getChainId()
+                  .then((chainIdResult) => {
+                    if (chainIdResult) {
+                      setChainId(chainIdResult);
+                      console.log(`Got chain ID from connector: ${chainIdResult}`);
+                    }
+                  })
+                  .catch((error) => {
+                    console.error('Error getting chain ID:', error);
+                  });
               }
             }
           }, 500);
@@ -215,6 +290,23 @@ export function useWallet(connectorId: string): WalletState {
     }
   }, [connector, connectorId, status]);
 
+  // SwitchChain function implementation
+  const switchChain = useCallback(
+    async (newChainId: string) => {
+      if (!connector || status !== ConnectorStatus.CONNECTED) {
+        throw new Error('Wallet not connected');
+      }
+
+      try {
+        await connector.switchChainId(newChainId);
+      } catch (error) {
+        console.error(`Failed to switch chain to ${newChainId}:`, error);
+        throw error;
+      }
+    },
+    [connector, status]
+  );
+
   // Fetch address and chainId when connector or status changes
   useEffect(() => {
     const fetchConnectionData = async () => {
@@ -224,11 +316,21 @@ export function useWallet(connectorId: string): WalletState {
           const addresses = await connector.getConnectedAddresses();
           if (addresses && addresses.length > 0) {
             setAddress(addresses[0]);
+
+            // Also get the chain ID
+            try {
+              const currentChainId = await connector.getChainId();
+              if (currentChainId) {
+                setChainId(currentChainId);
+              }
+            } catch (chainError) {
+              console.error('Error getting chain ID:', chainError);
+            }
           } else {
             setAddress(null);
           }
         } catch (error) {
-          console.error("Error getting connected addresses:", error);
+          console.error('Error getting connected addresses:', error);
           setAddress(null);
         }
       } else if (status !== ConnectorStatus.CONNECTING) {
@@ -270,6 +372,21 @@ export function useWallet(connectorId: string): WalletState {
         (c) => c.id === chainId && c.chainType === ChainType.SUI
       );
       if (!chain) {
+        console.warn(`No chain config found for chainId: ${chainId}`);
+        // Attempt to get the chain ID again if it's not available
+        if (!chainId) {
+          connector
+            .getChainId()
+            .then((newChainId) => {
+              if (newChainId) {
+                console.log(`Updated chain ID to: ${newChainId}`);
+                setChainId(newChainId);
+              }
+            })
+            .catch((error) => {
+              console.error('Error getting chain ID:', error);
+            });
+        }
         return null;
       }
       const suiChain = new SuiChain(chain.name, chain as IChain<SuiClient>);
@@ -303,5 +420,6 @@ export function useWallet(connectorId: string): WalletState {
     chainId,
     connect,
     disconnect,
+    switchChain,
   };
 }

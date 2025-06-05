@@ -2,9 +2,15 @@ export * from "./types";
 export * from "./evm/EvmConnector";
 export * from "./evm/MetamaskEvmConnector";
 export * from "./evm/PhantomEvmConnector";
+export * from "./evm/MagicEdenEvmConnector";
+export * from "./evm/RainbowEvmConnector";
+export * from "./evm/OkxEvmConnector";
 export * from "./solana/SolanaConnector";
+export * from './evm/TrustWalletEvmConnector'
+export * from './evm/BinanceEvmConnector';
 export * from "./sui/SuiConnector";
 export * from "./sui/SuietConnector";
 export * from "./sui/SlushConnector";
 export * from "./sui/PhantomSuiConnector";
 export * from "../contexts/WalletContext"; 
+

@@ -34,6 +34,7 @@ export interface WalletProviderProps {
   children: React.ReactNode;
   connectors: IConnector[];
   chainConfigs: IChainConfig[];
+  reconnect?: 'none' | 'auto';
 }
 
 export interface WalletContextState {
@@ -41,6 +42,7 @@ export interface WalletContextState {
   chainConfigs: IChainConfig[];
   activeConnectors: { [key: string]: IConnector };
   connectorStatuses: { [key: string]: ConnectorStatus };
+  reconnect: 'none' | 'auto';
 } 
 
 export interface DappMetadata {

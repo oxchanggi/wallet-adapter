@@ -6,11 +6,17 @@ import { SolanaConnector } from "../connectors/solana/SolanaConnector";
 
 export type SolanaTransaction = Transaction | VersionedTransaction;
 
-export class SolanaWallet extends Wallet<SolanaTransaction, SolanaChain, SolanaConnector> {
+export class SolanaWallet extends Wallet<SolanaTransaction, SolanaChain, SolanaConnector, any> {
+  sendTransaction(transaction: SolanaTransaction): Promise<string> {
+    throw new Error("Method not implemented.");
+  }
+  sendRawTransaction(transaction: string): Promise<string> {
+    throw new Error("Method not implemented.");
+  }
   private provider: any;
 
-  constructor(_address: string, chain: SolanaChain, connector: SolanaConnector) {
-    super(_address, chain, connector);
+  constructor(_address: string, chain: SolanaChain, connector: SolanaConnector, walletClient: any) {
+    super(_address, chain, connector, walletClient);
 }
 
   async signMessage(message: string): Promise<string> {

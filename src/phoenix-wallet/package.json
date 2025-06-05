@@ -8,6 +8,7 @@
     "dev": "tsc --watch"
   },
   "dependencies": {
+    "@binance/w3w-ethereum-provider": "^1.1.8-alpha.0",
     "@metamask/sdk": "^0.33.0",
     "@solana/wallet-adapter-react": "^0.15.35",
     "@solana/web3.js": "^1.98.2",

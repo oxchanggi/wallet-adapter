@@ -16,7 +16,7 @@ interface WalletConnectorEventProps {
 
 /**
  * Hook to handle wallet connector events
- * 
+ *
  * @param props Event handlers for wallet connector events
  */
 export function useWalletConnectorEvent({
@@ -55,7 +55,7 @@ export function useWalletConnectorEvent({
         if (handlersRef.current.onAccountChanged) {
           await handlersRef.current.onAccountChanged(connectorId, addresses);
         }
-      }
+      },
     };
     return callback;
   }, []);
@@ -63,17 +63,17 @@ export function useWalletConnectorEvent({
   // Register and unregister callback for each active connector
   useEffect(() => {
     const callback = connectorCallback();
-    
+
     // Register callback with all active connectors
-    Object.values(connectors).forEach(connector => {
+    Object.values(connectors).forEach((connector) => {
       connector.registerConnectorCallback(callback);
     });
 
     // Cleanup: unregister callbacks when component unmounts
     return () => {
-      Object.values(connectors).forEach(connector => {
+      Object.values(connectors).forEach((connector) => {
         connector.unregisterConnectorCallback(callback);
       });
     };
   }, [connectors, connectorCallback]);
-} 
+}
