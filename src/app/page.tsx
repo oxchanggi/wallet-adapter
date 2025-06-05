@@ -1,7 +1,8 @@
-'use client';
+"use client";
 import { ChainType, WalletProvider } from "../phoenix-wallet";
 import { SimpleWalletConnect } from "./SimpleWalletConnect";
 import { MetamaskEvmConnector, PhantomEvmConnector } from "../phoenix-wallet";
+import { CoinbaseEvmConnector } from "@/phoenix-wallet/connectors/evm/CoinbaseEvmConnector";
 
 const dappMetadata = {
   name: "Phoenix Wallet",
@@ -11,7 +12,8 @@ const dappMetadata = {
 export const defaultConnectors = [
   new MetamaskEvmConnector(dappMetadata),
   new PhantomEvmConnector(dappMetadata),
-]
+  new CoinbaseEvmConnector(dappMetadata),
+];
 
 export const chainConfigs = [
   {
@@ -21,7 +23,7 @@ export const chainConfigs = [
     privateRpcUrl: "https://mainnet.infura.io/v3/YOUR_INFURA_KEY",
     explorerUrl: "https://etherscan.io",
     chainId: 1,
-    nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },     
+    nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
     chainType: ChainType.EVM,
   },
   {
@@ -43,13 +45,16 @@ export const chainConfigs = [
     chainId: 11155111,
     nativeCurrency: { name: "Sepolia", symbol: "ETH", decimals: 18 },
     chainType: ChainType.EVM,
-  }
-]
-
+  },
+];
 
 export default function Home() {
   return (
-    <WalletProvider connectors={defaultConnectors} chainConfigs={chainConfigs} reconnect="auto">
+    <WalletProvider
+      connectors={defaultConnectors}
+      chainConfigs={chainConfigs}
+      reconnect="auto"
+    >
       <SimpleWalletConnect />
     </WalletProvider>
   );
