@@ -9,6 +9,7 @@ export interface IWallet<T, K extends Chain<any>, Q extends IConnector, M> {
   signTransaction(transaction: T): Promise<string>;
   sendTransaction(transaction: T): Promise<string>;
   sendRawTransaction(transaction: string): Promise<string>;
+  signAllTransactions(transactions: T[]): Promise<string[]>;
   get address(): string;
   get walletClient(): M;
 }
@@ -28,6 +29,7 @@ export abstract class Wallet<T, K extends Chain<any>, Q extends IConnector, M> i
   abstract signTransaction(transaction: T): Promise<string>;
   abstract sendTransaction(transaction: T): Promise<string>;
   abstract sendRawTransaction(transaction: string): Promise<string>;
+  abstract signAllTransactions(transactions: T[]): Promise<string[]>;
   abstract get address(): string;
   get walletClient(): M {
     return this._walletClient;

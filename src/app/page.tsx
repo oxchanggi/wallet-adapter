@@ -11,11 +11,12 @@ import {
   TrustWalletEvmConnector,
   OkxEvmConnector,
   WalletProvider,
-  PhantomSolConnector,
+  SolanaConnector,
+  SolanaCluster,
 } from '../phoenix-wallet';
 import { SimpleWalletConnect } from './SimpleWalletConnect';
 import { CoinbaseEvmConnector } from '@/phoenix-wallet/connectors/evm/CoinbaseEvmConnector';
-
+import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom';
 const dappMetadata = {
   name: 'Phoenix Wallet',
   url: 'https://phoenix-wallet.com',
@@ -24,7 +25,6 @@ const dappMetadata = {
 export const defaultConnectors = [
   new MetamaskEvmConnector(dappMetadata),
   new PhantomEvmConnector(dappMetadata),
-  new PhantomSolConnector(dappMetadata),
   new CoinbaseEvmConnector(dappMetadata),
   new TrustWalletEvmConnector(dappMetadata),
   new MagicEdenEvmConnector(dappMetadata),
@@ -32,6 +32,9 @@ export const defaultConnectors = [
   new RabbyEvmConnector(dappMetadata),
   new OkxEvmConnector(dappMetadata),
   new BinanceEvmConnector(dappMetadata),
+
+  // Solana
+  new SolanaConnector(dappMetadata, new PhantomWalletAdapter(), SolanaCluster.DEVNET),
 ];
 
 export const chainConfigs = [
@@ -74,6 +77,26 @@ export const chainConfigs = [
     chainId: 56,
     nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
     chainType: ChainType.EVM,
+  },
+  {
+    id: 'solana_devnet',
+    name: 'Solana',
+    publicRpcUrl: 'https://api.devnet.solana.com',
+    privateRpcUrl: 'https://api.devnet.solana.com',
+    explorerUrl: 'https://explorer.solana.com',
+    chainId: -1111,
+    nativeCurrency: { name: 'Solana', symbol: 'SOL', decimals: 9 },
+    chainType: ChainType.SOLANA,
+  },
+  {
+    id: 'solana_mainnet_beta',
+    name: 'Solana',
+    publicRpcUrl: 'https://api.mainnet-beta.solana.com',
+    privateRpcUrl: 'https://api.mainnet-beta.solana.com',
+    explorerUrl: 'https://explorer.solana.com',
+    chainId: 101,
+    nativeCurrency: { name: 'Solana', symbol: 'SOL', decimals: 9 },
+    chainType: ChainType.SOLANA,
   },
 ];
 

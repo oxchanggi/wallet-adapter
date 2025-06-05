@@ -82,17 +82,14 @@ export abstract class EvmConnector extends Connector {
     }
 
     this.provider.on('accountsChanged', (accounts: string[]) => {
-      console.log('accountsChanged', accounts);
       this.handleEventAccountChanged(accounts);
     });
 
     this.provider.on('chainChanged', (chainId: string) => {
-      console.log('chainChanged', chainId);
       this.activeChainId = chainId;
       this.handleEventChainChanged(chainId);
     });
     this.provider.on('disconnect', () => {
-      console.log('disconnect');
       if (this.activeAddress) {
         this.handleEventDisconnect(this.activeAddress);
         this.activeAddress = undefined;
@@ -181,7 +178,7 @@ export abstract class EvmConnector extends Connector {
   }
 
   protected get storageConnectionStatusKey(): string | null {
-    return `${this.id}_connection_status`;
+    return `phoenix_${this.id}_evm_connection_status`;
   }
 
   protected checkStoredConnection(): void {

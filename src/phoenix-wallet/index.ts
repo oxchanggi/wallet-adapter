@@ -2,8 +2,13 @@
 export * from './chains/Chain';
 export * from './chains/EvmChain';
 export * from './chains/SolanaChain';
-export * from './wallets/IWallet';
 
+// Wallets
+export * from './wallets/IWallet';
+export * from './wallets/EvmWallet';
+export * from './wallets/SolanaWallet';
+
+// Connectors
 export * from './connectors/IConnector';
 export * from './connectors/evm/EvmConnector';
 export * from './connectors/evm/MetamaskEvmConnector';
@@ -15,6 +20,7 @@ export * from './connectors/evm/OkxEvmConnector';
 export * from './connectors/evm/TrustWalletEvmConnector';
 export * from './connectors/evm/BinanceEvmConnector';
 export * from './connectors/evm/EvmConnector';
+export * from './connectors/solana/SolanaConnector';
 export * from './connectors/types';
 export * from './connectors/index';
 

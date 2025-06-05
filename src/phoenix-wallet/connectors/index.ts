@@ -6,7 +6,6 @@ export * from './evm/MagicEdenEvmConnector';
 export * from './evm/RainbowEvmConnector';
 export * from './evm/OkxEvmConnector';
 export * from './solana/SolanaConnector';
-export * from './solana/PhantomSolConnector';
 export * from './evm/TrustWalletEvmConnector';
 export * from './evm/BinanceEvmConnector';
 export * from '../contexts/WalletContext';

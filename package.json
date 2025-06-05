@@ -10,6 +10,8 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@solana/wallet-adapter-phantom": "^0.9.27",
+    "@solana/web3.js": "^1.98.2",
     "next": "15.3.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
