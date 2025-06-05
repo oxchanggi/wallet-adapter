@@ -1,5 +1,5 @@
 'use client';
-import { ChainType, WalletProvider } from "../phoenix-wallet";
+import { ChainType, MagicEdenEvmConnector, RainbowEvmConnector, WalletProvider } from "../phoenix-wallet";
 import { SimpleWalletConnect } from "./SimpleWalletConnect";
 import { MetamaskEvmConnector, PhantomEvmConnector } from "../phoenix-wallet";
 
@@ -11,6 +11,8 @@ const dappMetadata = {
 export const defaultConnectors = [
   new MetamaskEvmConnector(dappMetadata),
   new PhantomEvmConnector(dappMetadata),
+  new MagicEdenEvmConnector(dappMetadata),
+  new RainbowEvmConnector(dappMetadata),
 ]
 
 export const chainConfigs = [
