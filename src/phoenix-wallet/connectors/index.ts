@@ -1,4 +1,5 @@
 export * from '../contexts/WalletContext'
+export * from './evm/BinanceEvmConnector'
 export * from './evm/EvmConnector'
 export * from './evm/MagicEdenEvmConnector'
 export * from './evm/MetamaskEvmConnector'

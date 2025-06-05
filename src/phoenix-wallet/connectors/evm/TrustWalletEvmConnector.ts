@@ -15,6 +15,7 @@ export class TrustWalletEvmConnector extends EvmConnector {
 
   get provider(): any {
     if (typeof window !== 'undefined' && window.trustwallet) {
+      console.log('trustwallet', window.trustwallet)
       return window.trustwallet
     } else if (typeof window !== 'undefined' && window.ethereum?.isTrust) {
       // Fallback to window.ethereum if it has isTrust property

@@ -1,12 +1,13 @@
 "use client";
 
 import {
+  BinanceEvmConnector,
   ChainType,
-  MagicEdenEvmConnector,
-  MetamaskEvmConnector,
-  PhantomEvmConnector,
-  RainbowEvmConnector,
-  TrustWalletEvmConnector,
+  // MagicEdenEvmConnector,
+  // MetamaskEvmConnector,
+  // PhantomEvmConnector,
+  // RainbowEvmConnector,
+  // TrustWalletEvmConnector,
   WalletProvider,
 } from "../phoenix-wallet";
 import { SimpleWalletConnect } from "./SimpleWalletConnect";
@@ -17,11 +18,12 @@ const dappMetadata = {
 };
 
 export const defaultConnectors = [
-  new MetamaskEvmConnector(dappMetadata),
-  new PhantomEvmConnector(dappMetadata),
-  new TrustWalletEvmConnector(dappMetadata),
-  new MagicEdenEvmConnector(dappMetadata),
-  new RainbowEvmConnector(dappMetadata),
+  // new MetamaskEvmConnector(dappMetadata),
+  // new PhantomEvmConnector(dappMetadata),
+  // new TrustWalletEvmConnector(dappMetadata),
+  // new MagicEdenEvmConnector(dappMetadata),
+  // new RainbowEvmConnector(dappMetadata),
+  new BinanceEvmConnector(dappMetadata),
 ]
 
 export const chainConfigs = [
@@ -53,6 +55,16 @@ export const chainConfigs = [
     explorerUrl: "https://sepolia.etherscan.io",
     chainId: 11155111,
     nativeCurrency: { name: "Sepolia", symbol: "ETH", decimals: 18 },
+    chainType: ChainType.EVM,
+  },
+  {
+    id: "56",
+    name: "BSC",
+    publicRpcUrl: "https://bsc-dataseed.binance.org",
+    privateRpcUrl: "https://bsc-dataseed.binance.org",
+    explorerUrl: "https://bscscan.com",
+    chainId: 56,
+    nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
     chainType: ChainType.EVM,
   },
 ];
