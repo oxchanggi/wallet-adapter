@@ -9,6 +9,7 @@ import { EvmWallet } from '../wallets/EvmWallet';
 import { EvmConnector } from '../connectors';
 import { EvmChain } from '../chains/EvmChain';
 import { JsonRpcProvider } from 'ethers';
+import { SolanaWallet } from '../wallets/SolanaWallet';
 // Interface for the connector-specific return values
 interface WalletState {
   connector: IConnector | null;
@@ -33,7 +34,7 @@ interface WalletState {
  */
 export function useWallet(connectorId: string): WalletState {
   const walletContext = useWalletConnectors();
-  const { connectors, activeConnectors, connectorStatuses, chainConfigs } = walletContext;
+  const { connectors, activeConnectors, connectorStatuses, chainConfigs, reconnect } = walletContext;
   
   // State for tracking transitional statuses (connecting, error)
   const [transitionalStatus, setTransitionalStatus] = useState<ConnectorStatus | null>(null);
@@ -43,6 +44,7 @@ export function useWallet(connectorId: string): WalletState {
   
   // Track connection attempts to prevent race conditions
   const connectionAttemptRef = useRef<number>(0);
+  const hasAttemptedReconnect = useRef<boolean>(false);
 
   // Get the connector instance
   const connector = useMemo(() => 
@@ -55,6 +57,46 @@ export function useWallet(connectorId: string): WalletState {
     if (transitionalStatus) return transitionalStatus;
     return connectorStatuses[connectorId] || ConnectorStatus.DISCONNECTED;
   }, [connectorStatuses, connectorId, transitionalStatus]);
+
+  // Attempt auto-reconnect if needed
+  useEffect(() => {
+    const attemptReconnect = async () => {
+      if (!connector || hasAttemptedReconnect.current || reconnect !== 'auto') {
+        return;
+      }
+      
+      hasAttemptedReconnect.current = true;
+      
+      try {
+        // Only try to reconnect if we're not already connected and the connector has an active session
+        if (status === ConnectorStatus.DISCONNECTED) {
+          const isConnectedResult = await connector.isConnected();
+          
+          if (isConnectedResult) {
+            console.log(`Auto-reconnecting to ${connectorId}...`);
+            setTransitionalStatus(ConnectorStatus.CONNECTING);
+            
+            // Call the connector's connect method
+            const result = await connector.connect();
+            
+            if (result?.address) {
+              console.log(`Successfully reconnected to ${connectorId}`);
+              setAddress(result.address);
+              
+              if (result.chainId) {
+                setChainId(result.chainId);
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`Failed to auto-reconnect to ${connectorId}:`, error);
+        setTransitionalStatus(ConnectorStatus.ERROR);
+      }
+    };
+    
+    attemptReconnect();
+  }, [connector, connectorId, status, reconnect]);
 
   // Check if wallet is installed
   useEffect(() => {

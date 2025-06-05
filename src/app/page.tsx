@@ -49,7 +49,7 @@ export const chainConfigs = [
 
 export default function Home() {
   return (
-    <WalletProvider connectors={defaultConnectors} chainConfigs={chainConfigs}>
+    <WalletProvider connectors={defaultConnectors} chainConfigs={chainConfigs} reconnect="auto">
       <SimpleWalletConnect />
     </WalletProvider>
   );

@@ -19,6 +19,7 @@ export interface IConnector {
     unregisterConnectorCallback(callback: IConnectorCallback): void;
     createWalletClient(chain: IChain<any>): any;
     isInstalled(): Promise<boolean>;
+    isConnected(): Promise<boolean>;
     get chainType(): ChainType;
 }
 
@@ -42,6 +43,7 @@ export abstract class Connector implements IConnector {
     abstract get chainType(): ChainType;
     abstract setupEventListeners(): Promise<void>;
     abstract isInstalled(): Promise<boolean>;
+    abstract isConnected(): Promise<boolean>;
     abstract createWalletClient(chain: IChain<any>): any;
 
     async handleEventConnect(address: string, chainId?: string): Promise<void> {

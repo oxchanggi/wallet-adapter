@@ -20,6 +20,21 @@ export abstract class EvmConnector extends Connector {
     return ChainType.EVM;
   }
 
+  async isConnected(): Promise<boolean> {
+    try {
+      if (this.activeAddress) {
+        return true;
+      }
+
+      const addresses = await this.getConnectedAddresses().catch(() => []);
+      console.log(addresses);
+      return addresses.length > 0;
+    } catch (error) {
+      console.error(`Error checking if ${this.id} is connected:`, error);
+      return false;
+    }
+  }
+
   async handleEventAccountChanged(addresses: string[]): Promise<void> {
     if (addresses.length === 0) {
       if (this.activeAddress) {
@@ -35,6 +50,38 @@ export abstract class EvmConnector extends Connector {
       }
     }
     super.handleEventAccountChanged(addresses);
+  }
+
+  abstract init(): Promise<void> 
+
+  async setupEventListeners(): Promise<void> {
+    if (!this.provider) {
+      throw new Error(this.name+" provider not available");
+    }
+    
+    this.provider.on('accountsChanged', (accounts: string[]) => {
+      this.handleEventAccountChanged(accounts);
+    });
+    
+    this.provider.on('chainChanged', (chainId: string) => {
+      this.activeChainId = chainId;
+      this.handleEventChainChanged(chainId);
+    });
+  }
+
+  async getConnectedAddresses(): Promise<string[]> {
+    await this.init();
+    const accounts = await this.provider?.request({ method: 'eth_accounts' }) as string[];
+    if (!accounts) {
+      return []
+    }
+    return accounts;
+  }
+
+  async getChainId(): Promise<string> {
+    const chainIdHex = await this.provider?.request({ method: 'eth_chainId' });
+    // Convert hex string to number and then back to string
+    return chainIdHex ? parseInt(chainIdHex.toString(), 16).toString() : '0';
   }
 
   createWalletClient(chain: EvmChain) {
@@ -64,6 +111,46 @@ export abstract class EvmConnector extends Connector {
     
     return client;
   }
+
+  async connect(): Promise<{ address: string, chainId: string }> {
+    try {
+      if (!this.provider) {
+        await this.init();
+      }
+
+      if (!this.provider) {
+        throw new Error(this.name+" provider not available");
+      }
+
+      // Request accounts
+      const accounts = await this.provider?.request({ method: 'eth_requestAccounts' }) as string[];
+
+      if (!accounts || accounts.length === 0) {
+        throw new Error("No accounts found");
+      }
+
+      this.activeChainId = await this.getChainId();
+
+      if (this.activeAddress != accounts[0]) {
+        this.activeAddress = accounts[0];
+        this.handleEventConnect(this.activeAddress, this.activeChainId);
+      }
+
+      return { address: this.activeAddress, chainId: this.activeChainId };
+      // Create and return the wallet
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  async disconnect(): Promise<void> {
+    // No direct disconnect method in EIP-1193, but we can clear our local state
+    if (this.activeAddress) {
+        this.handleEventDisconnect(this.activeAddress);
+        this.activeAddress = undefined;
+        this.activeChainId = undefined;
+    }
+}
 }
 
 // Ensure TypeScript recognizes the ethereum property on window

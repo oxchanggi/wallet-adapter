@@ -17,6 +17,7 @@ const WalletContext = createContext<WalletContextState>({
   chainConfigs: DEFAULT_CHAIN_CONFIGS,
   connectorStatuses: {},
   activeConnectors: {},
+  reconnect: 'none',
 });
 
 export const useWalletConnectors = () => useContext(WalletContext);
@@ -24,7 +25,8 @@ export const useWalletConnectors = () => useContext(WalletContext);
 export const WalletProvider: React.FC<WalletProviderProps> = ({ 
   children, 
   connectors = [],
-  chainConfigs = []
+  chainConfigs = [],
+  reconnect = 'none'
 }) => {
   const [activeConnectors, setActiveConnectors] = useState<{ [key: string]: IConnector }>({});
   const [connectorStatuses, setConnectorStatuses] = useState<{ [key: string]: ConnectorStatus }>({});
@@ -37,6 +39,31 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
     });
     setConnectorStatuses(initialStatuses);
   }, [connectors]);
+
+  // Auto reconnect wallets from last session if enabled
+  useEffect(() => {
+    const autoReconnect = async () => {
+      if (reconnect === 'auto') {
+        // Attempt to reconnect all connectors that might have active sessions
+        for (const connector of connectors) {
+          try {
+            const isConnected = await connector.isConnected();
+            if (isConnected) {
+              console.log(`Auto-reconnecting to ${connector.id}...`);
+              const result = await connector.connect();
+              if (result) {
+                console.log(`Successfully reconnected to ${connector.id}`);
+              }
+            }
+          } catch (error) {
+            console.error(`Failed to auto-reconnect to ${connector.id}:`, error);
+          }
+        }
+      }
+    };
+
+    autoReconnect();
+  }, [connectors, reconnect]);
 
   // Register global event listeners for all connectors
   useEffect(() => {
@@ -97,7 +124,8 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
     connectors,
     activeConnectors,
     connectorStatuses,
-  }), [chainConfigs, connectors, activeConnectors, connectorStatuses]);
+    reconnect,
+  }), [chainConfigs, connectors, activeConnectors, connectorStatuses, reconnect]);
 
   return (
     <WalletContext.Provider value={contextValue}>
