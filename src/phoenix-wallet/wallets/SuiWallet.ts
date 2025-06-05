@@ -103,10 +103,10 @@ export class SuiWallet extends Wallet<
         throw new Error("Sui provider not available");
       }
 
-      const signedMessage = await this.suiProvider.signMessage({
-        message: message,
-        account: this._address,
-      });
+      const signedMessage = await this.suiProvider.signMessage(
+        new TextEncoder().encode(message),
+        this._address
+      );
 
       return signedMessage.signature;
     } catch (error) {

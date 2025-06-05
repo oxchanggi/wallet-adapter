@@ -31,7 +31,10 @@ export interface SuiProvider {
   signTransactionBlock(
     input: SuiSignTransactionBlockInput
   ): Promise<SuiSignedTransaction>;
-  signMessage(input: SuiSignMessageInput): Promise<SuiSignedMessage>;
+  signMessage(
+    message: Uint8Array<ArrayBufferLike>,
+    account?: string
+  ): Promise<SuiSignedMessage>;
 
   // Event methods
   on(event: SuiWalletEventType, callback: (...args: unknown[]) => void): void;
@@ -112,20 +115,12 @@ export abstract class SuiConnector extends Connector {
   }
 
   // Create wallet client for Sui operations (similar to EvmConnector.createWalletClient)
-  createWalletClient(chain: SuiChain): SuiClient {
+  createWalletClient(chain: SuiChain): SuiProvider {
     if (!this.provider) {
       throw new Error("Sui provider not available");
     }
 
-    // Create SuiClient using chain configuration
-    const client = new SuiClient({
-      url: chain.publicRpcUrl,
-    });
-
-    // Store client for later use
-    this.suiClient = client;
-
-    return client;
+    return this.provider;
   }
 
   // Abstract methods that must be implemented by concrete connectors

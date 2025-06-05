@@ -26,7 +26,7 @@ export const chainConfigs = [
     privateRpcUrl: "https://mainnet.infura.io/v3/YOUR_INFURA_KEY",
     explorerUrl: "https://etherscan.io",
     chainId: 1,
-    nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },     
+    nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
     chainType: ChainType.EVM,
   },
   {
@@ -48,8 +48,18 @@ export const chainConfigs = [
     chainId: 11155111,
     nativeCurrency: { name: "Sepolia", symbol: "ETH", decimals: 18 },
     chainType: ChainType.EVM,
-  }
-]
+  },
+  {
+    id: "sui:mainnet",
+    name: "Sui Mainnet",
+    publicRpcUrl: "https://fullnode.mainnet.sui.io:443",
+    privateRpcUrl: "https://fullnode.mainnet.sui.io:443",
+    explorerUrl: "https://suivision.xyz",
+    chainId: "sui:mainnet" as any,
+    nativeCurrency: { name: "Sui", symbol: "SUI", decimals: 18 },
+    chainType: ChainType.SUI,
+  },
+];
 
 
 export default function Home() {
