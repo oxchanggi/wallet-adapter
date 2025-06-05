@@ -4,16 +4,11 @@ import {
   BinanceEvmConnector,
   ChainType,
   MagicEdenEvmConnector,
-  MetamaskEvmConnector,
-  PhantomEvmConnector,
-  RainbowEvmConnector,
-  TrustWalletEvmConnector,
-  MagicEdenEvmConnector,
   OkxEvmConnector,
   RainbowEvmConnector,
+  TrustWalletEvmConnector,
   WalletProvider,
-  SlushConnector,
-} from "../phoenix-wallet";
+} from '../phoenix-wallet';
 import { SimpleWalletConnect } from "./SimpleWalletConnect";
 import { MetamaskEvmConnector, PhantomEvmConnector, PhantomSuiConnector } from "../phoenix-wallet";
 
