@@ -1,7 +1,20 @@
-'use client';
-import { ChainType, PhantomSolConnector, WalletProvider } from "../phoenix-wallet";
+"use client";
+
+import { RabbyEvmConnector } from "@/phoenix-wallet/connectors/evm/RabbyEvmConnector";
+import {
+  BinanceEvmConnector,
+  ChainType,
+  MagicEdenEvmConnector,
+  MetamaskEvmConnector,
+  PhantomEvmConnector,
+  RainbowEvmConnector,
+  TrustWalletEvmConnector,
+  OkxEvmConnector,
+  WalletProvider,
+  PhantomSolConnector,
+} from "../phoenix-wallet";
 import { SimpleWalletConnect } from "./SimpleWalletConnect";
-import { MetamaskEvmConnector, PhantomEvmConnector } from "../phoenix-wallet";
+import { CoinbaseEvmConnector } from "@/phoenix-wallet/connectors/evm/CoinbaseEvmConnector";
 
 const dappMetadata = {
   name: "Phoenix Wallet",
@@ -12,7 +25,14 @@ export const defaultConnectors = [
   new MetamaskEvmConnector(dappMetadata),
   new PhantomEvmConnector(dappMetadata),
   new PhantomSolConnector(dappMetadata),
-]
+  new CoinbaseEvmConnector(dappMetadata),
+  new TrustWalletEvmConnector(dappMetadata),
+  new MagicEdenEvmConnector(dappMetadata),
+  new RainbowEvmConnector(dappMetadata),
+  new RabbyEvmConnector(dappMetadata),
+  new OkxEvmConnector(dappMetadata),
+  new BinanceEvmConnector(dappMetadata),
+];
 
 export const chainConfigs = [
   {
@@ -22,7 +42,7 @@ export const chainConfigs = [
     privateRpcUrl: "https://mainnet.infura.io/v3/YOUR_INFURA_KEY",
     explorerUrl: "https://etherscan.io",
     chainId: 1,
-    nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },     
+    nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
     chainType: ChainType.EVM,
   },
   {
@@ -44,13 +64,26 @@ export const chainConfigs = [
     chainId: 11155111,
     nativeCurrency: { name: "Sepolia", symbol: "ETH", decimals: 18 },
     chainType: ChainType.EVM,
-  }
-]
-
+  },
+  {
+    id: "56",
+    name: "BSC",
+    publicRpcUrl: "https://bsc-dataseed.binance.org",
+    privateRpcUrl: "https://bsc-dataseed.binance.org",
+    explorerUrl: "https://bscscan.com",
+    chainId: 56,
+    nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
+    chainType: ChainType.EVM,
+  },
+];
 
 export default function Home() {
   return (
-    <WalletProvider connectors={defaultConnectors} chainConfigs={chainConfigs} reconnect="auto">
+    <WalletProvider
+      connectors={defaultConnectors}
+      chainConfigs={chainConfigs}
+      reconnect="auto"
+    >
       <SimpleWalletConnect />
     </WalletProvider>
   );

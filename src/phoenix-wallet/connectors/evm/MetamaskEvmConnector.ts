@@ -1,19 +1,19 @@
-import { EvmConnector } from "./EvmConnector";
-import { MetaMaskSDK, MetaMaskSDKOptions } from '@metamask/sdk';
-import { BrowserProvider, JsonRpcSigner } from "ethers";
-import { EvmWallet, EvmTransaction } from "../../wallets/EvmWallet";
-import { EvmChain } from "../../chains/EvmChain";
-import { IChain, ChainType } from "../../chains/Chain";
-import { DappMetadata } from "../types";
+import { MetaMaskSDK } from '@metamask/sdk';
+import { DappMetadata } from '../types';
+import { EvmConnector } from './EvmConnector';
 
 export class MetamaskEvmConnector extends EvmConnector {
   private sdk: MetaMaskSDK | null = null;
 
   constructor(dappMetadata: DappMetadata) {
-    super("metamaskevm", {
-      name: "Metamask",
-      logo: "https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg",
-    }, dappMetadata);
+    super(
+      'metamaskevm',
+      {
+        name: 'Metamask',
+        logo: 'https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg',
+      },
+      dappMetadata
+    );
   }
 
   get provider(): any {
@@ -41,8 +41,6 @@ export class MetamaskEvmConnector extends EvmConnector {
     }
     return false;
   }
-
-  
 
   async disconnect(): Promise<void> {
     await this.sdk?.terminate();

@@ -1,11 +1,8 @@
-import { BrowserProvider, id, JsonRpcSigner, Wallet } from "ethers";
-import { ConnectorConfig, ConnectorInterface, ConnectorState, DappMetadata } from "../types";
-import { IWallet } from "../../wallets/IWallet";
-import { EvmTransaction } from "../../wallets/EvmWallet";
-import { Connector } from "../IConnector";
-import { Chain, ChainType, IChain } from "../../chains/Chain";
-import { createWalletClient, custom } from "viem";
-import { EvmChain } from "../../chains/EvmChain";
+import { createWalletClient, custom } from 'viem';
+import { ChainType } from '../../chains/Chain';
+import { EvmChain } from '../../chains/EvmChain';
+import { Connector } from '../IConnector';
+import { ConnectorConfig, DappMetadata } from '../types';
 
 export abstract class EvmConnector extends Connector {
   protected activeAddress: string | undefined = undefined;
@@ -24,7 +21,7 @@ export abstract class EvmConnector extends Connector {
 
   async init(): Promise<void> {
     if (!this.provider) {
-      throw new Error(this.name + " provider not found");
+      throw new Error(this.name + ' provider not found');
     }
 
     if (this.isInitialized) {
@@ -33,9 +30,11 @@ export abstract class EvmConnector extends Connector {
 
     this.isInitialized = true;
 
+    console.log('init', this.isInitialized);
+
     this.setupEventListeners();
 
-      // Check if we have a stored connection
+    // Check if we have a stored connection
     this.checkStoredConnection();
   }
 
@@ -79,24 +78,34 @@ export abstract class EvmConnector extends Connector {
 
   async setupEventListeners(): Promise<void> {
     if (!this.provider) {
-      throw new Error(this.name + " provider not available");
+      throw new Error(this.name + ' provider not available');
     }
 
     this.provider.on('accountsChanged', (accounts: string[]) => {
+      console.log('accountsChanged', accounts);
       this.handleEventAccountChanged(accounts);
     });
 
     this.provider.on('chainChanged', (chainId: string) => {
+      console.log('chainChanged', chainId);
       this.activeChainId = chainId;
       this.handleEventChainChanged(chainId);
+    });
+    this.provider.on('disconnect', () => {
+      console.log('disconnect');
+      if (this.activeAddress) {
+        this.handleEventDisconnect(this.activeAddress);
+        this.activeAddress = undefined;
+        this.activeChainId = undefined;
+      }
     });
   }
 
   async getConnectedAddresses(): Promise<string[]> {
     await this.init();
-    const accounts = await this.provider?.request({ method: 'eth_accounts' }) as string[];
+    const accounts = (await this.provider?.request({ method: 'eth_accounts' })) as string[];
     if (!accounts) {
-      return []
+      return [];
     }
     return accounts;
   }
@@ -113,43 +122,43 @@ export abstract class EvmConnector extends Connector {
         blockExplorers: {
           default: {
             name: chain.chainName,
-            url: chain.explorerUrl
-          }
+            url: chain.explorerUrl,
+          },
         },
         id: parseInt(this.activeChainId!),
         name: chain.chainName,
         nativeCurrency: {
           name: chain.chainName,
           symbol: chain.chainName,
-          decimals: 18
+          decimals: 18,
         },
         rpcUrls: {
           default: {
-            http: [chain.privateRpcUrl]
-          }
-        }
+            http: [chain.privateRpcUrl],
+          },
+        },
       },
-      transport: custom(this.provider)
-    })
+      transport: custom(this.provider),
+    });
 
     return client;
   }
 
-  async connect(): Promise<{ address: string, chainId: string }> {
+  async connect(): Promise<{ address: string; chainId: string }> {
     try {
       if (!this.provider) {
         await this.init();
       }
 
       if (!this.provider) {
-        throw new Error(this.name + " provider not available");
+        throw new Error(this.name + ' provider not available');
       }
 
       // Request accounts
-      const accounts = await this.provider?.request({ method: 'eth_requestAccounts' }) as string[];
+      const accounts = (await this.provider?.request({ method: 'eth_requestAccounts' })) as string[];
 
       if (!accounts || accounts.length === 0) {
-        throw new Error("No accounts found");
+        throw new Error('No accounts found');
       }
 
       this.activeChainId = await this.getChainId();
@@ -171,30 +180,30 @@ export abstract class EvmConnector extends Connector {
     }
   }
 
-  get storageConnectionStatusKey(): string {
+  protected get storageConnectionStatusKey(): string | null {
     return `${this.id}_connection_status`;
   }
 
-  private checkStoredConnection(): void {
+  protected checkStoredConnection(): void {
     if (typeof localStorage !== 'undefined' && this.storageConnectionStatusKey) {
       const storedStatus = localStorage.getItem(this.storageConnectionStatusKey);
       if (storedStatus === 'connected') {
         // Attempt to reconnect based on stored state
         this.getConnectedAddresses()
-          .then(addresses => {
+          .then((addresses) => {
             if (addresses.length > 0) {
               this.activeAddress = addresses[0];
-              this.getChainId().then(chainId => {
+              this.getChainId().then((chainId) => {
                 this.activeChainId = chainId;
                 this.handleEventConnect(this.activeAddress!, this.activeChainId);
               });
             } else {
               // Clear stored connection if no addresses found
-              localStorage.removeItem(this.storageConnectionStatusKey);
+              localStorage.removeItem(this.storageConnectionStatusKey!);
             }
           })
           .catch(() => {
-            localStorage.removeItem(this.storageConnectionStatusKey);
+            localStorage.removeItem(this.storageConnectionStatusKey!);
           });
       }
     }
@@ -209,7 +218,7 @@ export abstract class EvmConnector extends Connector {
     this.activeChainId = undefined;
 
     // Remove the connection status from localStorage
-    if (typeof localStorage !== 'undefined') {
+    if (typeof localStorage !== 'undefined' && this.storageConnectionStatusKey) {
       localStorage.removeItem(this.storageConnectionStatusKey);
     }
 
@@ -217,6 +226,10 @@ export abstract class EvmConnector extends Connector {
     if (this.provider && currentAddress) {
       this.handleEventDisconnect(currentAddress);
     }
+  }
+
+  async switchChainId(chainId: string): Promise<void> {
+    await this.provider?.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: chainId }] });
   }
 }
 
@@ -226,4 +239,4 @@ declare global {
     ethereum?: any;
     phantom?: any;
   }
-} 
+}
