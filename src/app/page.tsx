@@ -8,6 +8,7 @@ import {
 import { SimpleWalletConnect } from "./SimpleWalletConnect";
 import { MetamaskEvmConnector, PhantomEvmConnector } from "../phoenix-wallet";
 import { CoinbaseEvmConnector } from "@/phoenix-wallet/connectors/evm/CoinbaseEvmConnector";
+import { RabbyEvmConnector } from "@/phoenix-wallet/connectors/evm/RabbyEvmConnector";
 
 const dappMetadata = {
   name: "Phoenix Wallet",
@@ -20,6 +21,7 @@ export const defaultConnectors = [
   new CoinbaseEvmConnector(dappMetadata),
   new MagicEdenEvmConnector(dappMetadata),
   new RainbowEvmConnector(dappMetadata),
+  new RabbyEvmConnector(dappMetadata),
 ];
 
 export const chainConfigs = [
