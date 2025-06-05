@@ -1,8 +1,4 @@
 import { EvmConnector } from "./EvmConnector";
-import { BrowserProvider, JsonRpcSigner } from "ethers";
-import { EvmWallet, EvmTransaction } from "../../wallets/EvmWallet";
-import { EvmChain } from "../../chains/EvmChain";
-import { IChain, ChainType } from "../../chains/Chain";
 import { DappMetadata } from "../types";
 
 export class RainbowEvmConnector extends EvmConnector {
@@ -14,8 +10,8 @@ export class RainbowEvmConnector extends EvmConnector {
     }
 
     get provider(): any {
-        if (typeof window !== 'undefined' && window.rainbow?.ethereum) {
-            return window.rainbow.ethereum;
+        if (typeof window !== 'undefined' && window.rainbow) {
+            return window.rainbow;
         } else if (typeof window !== 'undefined' && window.ethereum?.isRainbow) {
             // Fallback to window.ethereum if it has isPhantom property
             return window.ethereum;
@@ -25,7 +21,7 @@ export class RainbowEvmConnector extends EvmConnector {
     async isInstalled(): Promise<boolean> {
         // Check if Rainbow's Ethereum provider exists
         if (typeof window !== 'undefined') {
-            return Boolean(window.rainbow?.ethereum || (window.ethereum?.isRainbow));
+            return Boolean(window.rainbow || (window.ethereum?.isRainbow));
         }
         return false;
     }
