@@ -9,6 +9,7 @@ import {
   PhantomEvmConnector,
   RainbowEvmConnector,
   TrustWalletEvmConnector,
+  OkxEvmConnector,
   WalletProvider,
 } from "../phoenix-wallet";
 import { SimpleWalletConnect } from "./SimpleWalletConnect";
@@ -27,6 +28,7 @@ export const defaultConnectors = [
   new MagicEdenEvmConnector(dappMetadata),
   new RainbowEvmConnector(dappMetadata),
   new RabbyEvmConnector(dappMetadata),
+  new OkxEvmConnector(dappMetadata),
   new BinanceEvmConnector(dappMetadata),
 ];
 

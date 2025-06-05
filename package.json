@@ -12,7 +12,6 @@
   "dependencies": {
     "@binance/w3w-ethereum-provider": "^1.1.8-alpha.0",
     "@metamask/sdk": "^0.33.0",
-    "@solflare-wallet/sdk": "^1.4.2",
     "next": "15.3.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
