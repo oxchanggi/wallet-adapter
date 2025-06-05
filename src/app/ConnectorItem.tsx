@@ -95,6 +95,10 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({
       case "coinbaseevm":
         window.open("https://www.coinbase.com/wallet/downloads", "_blank");
         break;
+      case "rabbyevm":
+        window.open("https://rabby.io/", "_blank");
+        break;
+      case "magicedenevm":
       default:
         window.open("https://metamask.io/download/", "_blank");
     }
