@@ -1,12 +1,5 @@
-import { 
-  Connection, 
-  PublicKey, 
-  Transaction, 
-  VersionedTransaction,
-  MessageV0
-} from '@solana/web3.js';
+
 import { ConnectorConfig, ConnectorInterface, ConnectorState, DappMetadata } from "../types";
-import { SolanaTransaction } from '../../wallets/SolanaWallet';
 import { Connector } from '../IConnector';
 import { ChainType, IChain } from '../../chains/Chain';
 import { BaseMessageSignerWalletAdapter, WalletReadyState } from '@solana/wallet-adapter-base';
@@ -36,6 +29,7 @@ export abstract class SolanaConnector extends Connector {
   }
 
   async isInstalled(): Promise<boolean> {
+    await this.init();
     return this.adapter.readyState == WalletReadyState.Installed;
  }
 
@@ -45,6 +39,7 @@ export abstract class SolanaConnector extends Connector {
 
   async connect(): Promise<{ address: string; chainId: string; }> {
     await this.init();
+    console.log("Connecting to Solana");
     await this.adapter.connect();
     return {
       address: this.adapter.publicKey?.toBase58() ?? '',
@@ -53,6 +48,7 @@ export abstract class SolanaConnector extends Connector {
   }
 
   async disconnect(): Promise<void> {
+    await this.init();
     await this.adapter.disconnect();
   }
 
