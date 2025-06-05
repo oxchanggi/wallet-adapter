@@ -27,8 +27,8 @@ export * from "./connectors/sui/SuiConnector";
 export * from "./connectors/sui/SuietConnector";
 export * from "./connectors/sui/SlushConnector";
 export * from "./connectors/sui/PhantomSuiConnector";
-export * from "./connectors/types";
-export * from "./connectors/index";
+export * from './connectors/types';
+export * from './connectors/index';
 
 // Types
 export * from "./types";

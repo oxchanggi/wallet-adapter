@@ -1,14 +1,12 @@
-import { ConnectorStatus } from "@/phoenix-wallet/connectors/types";
-import { useWallet } from "@/phoenix-wallet/hooks/useWallet";
-import React, { useState } from "react";
+import { ConnectorStatus } from '@/phoenix-wallet/connectors/types';
+import { useWallet } from '@/phoenix-wallet/hooks/useWallet';
+import React, { useState } from 'react';
 
 interface ConnectorItemProps {
   connectorId: string;
 }
 
-export const ConnectorItem: React.FC<ConnectorItemProps> = ({
-  connectorId,
-}) => {
+export const ConnectorItem: React.FC<ConnectorItemProps> = ({ connectorId }) => {
   const {
     connector,
     status,
@@ -31,7 +29,7 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({
 
   // Format address for display
   const formatAddress = (addr: string | null) => {
-    if (!addr) return "";
+    if (!addr) return '';
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
   };
 
@@ -39,13 +37,13 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({
   const getStatusColor = () => {
     switch (status) {
       case ConnectorStatus.CONNECTED:
-        return "bg-green-500";
+        return 'bg-green-500';
       case ConnectorStatus.CONNECTING:
-        return "bg-yellow-500";
+        return 'bg-yellow-500';
       case ConnectorStatus.ERROR:
-        return "bg-red-500";
+        return 'bg-red-500';
       default:
-        return "bg-gray-300";
+        return 'bg-gray-300';
     }
   };
 
@@ -53,13 +51,13 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({
   const getStatusText = () => {
     switch (status) {
       case ConnectorStatus.CONNECTED:
-        return "Connected";
+        return 'Connected';
       case ConnectorStatus.CONNECTING:
-        return "Connecting...";
+        return 'Connecting...';
       case ConnectorStatus.ERROR:
-        return "Connection Error";
+        return 'Connection Error';
       default:
-        return "Not Connected";
+        return 'Not Connected';
     }
   };
 
@@ -71,7 +69,7 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({
       console.log(`Connection result:`, result);
     } catch (error: any) {
       console.error(`Failed to connect to ${connector.name}:`, error);
-      setConnectionError(error.message || "Unknown error occurred");
+      setConnectionError(error.message || 'Unknown error occurred');
     }
   };
 
@@ -85,13 +83,22 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({
   };
 
   const handleInstall = () => {
-    if (connector.id === "metamaskevm") {
-      window.open("https://metamask.io/download/", "_blank");
-    } else if (connector.id === "phantomevm") {
-      window.open("https://phantom.app/download", "_blank");
-    } else {
-      // Default fallback
-      window.open("https://metamask.io/download/", "_blank");
+    switch (connector.id) {
+      case 'metamaskevm':
+        window.open('https://metamask.io/download/', '_blank');
+        break;
+      case 'phantomevm':
+        window.open('https://phantom.app/download', '_blank');
+        break;
+      case 'coinbaseevm':
+        window.open('https://www.coinbase.com/wallet/downloads', '_blank');
+        break;
+      case 'rabbyevm':
+        window.open('https://rabby.io/', '_blank');
+        break;
+      case 'magicedenevm':
+      default:
+        window.open('https://metamask.io/download/', '_blank');
     }
   };
 
@@ -105,16 +112,14 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({
               alt={`${connector.name} logo`}
               className="w-8 h-8 mr-3"
               onError={(e) => {
-                e.currentTarget.style.display = "none";
+                e.currentTarget.style.display = 'none';
               }}
             />
           )}
           <h3 className="font-medium text-lg text-black">{connector.name}</h3>
         </div>
         <div className="flex items-center">
-          <span
-            className={`inline-block w-3 h-3 rounded-full ${getStatusColor()} mr-2`}
-          ></span>
+          <span className={`inline-block w-3 h-3 rounded-full ${getStatusColor()} mr-2`}></span>
           <span className="text-sm text-gray-600">{getStatusText()}</span>
         </div>
       </div>
@@ -147,10 +152,7 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({
 
         {isConnecting && (
           <div>
-            <button
-              className="w-full py-2 px-4 bg-gray-400 text-white rounded cursor-wait mb-2"
-              disabled
-            >
+            <button className="w-full py-2 px-4 bg-gray-400 text-white rounded cursor-wait mb-2" disabled>
               <span className="inline-block mr-2">
                 <svg
                   className="animate-spin h-4 w-4 text-white inline-block"
@@ -158,14 +160,7 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({
                   fill="none"
                   viewBox="0 0 24 24"
                 >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path
                     className="opacity-75"
                     fill="currentColor"
@@ -175,9 +170,7 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({
               </span>
               Connecting...
             </button>
-            <p className="text-xs text-gray-500 text-center">
-              Check your wallet for connection prompt
-            </p>
+            <p className="text-xs text-gray-500 text-center">Check your wallet for connection prompt</p>
           </div>
         )}
 
@@ -192,9 +185,7 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({
 
         {hasError && (
           <div>
-            <p className="text-red-500 text-sm mb-2">
-              {connectionError || "Failed to connect. Please try again."}
-            </p>
+            <p className="text-red-500 text-sm mb-2">{connectionError || 'Failed to connect. Please try again.'}</p>
             <button
               className="w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors"
               onClick={handleConnect}

@@ -1,7 +1,8 @@
-import { Wallet } from "./IWallet";
-import { EvmChain } from "../chains/EvmChain";
-import { EvmConnector } from "../connectors";
-import { WalletClient } from "viem";
+import { JsonRpcSigner, Wallet as EthersWallet } from 'ethers';
+import { IWallet, Wallet } from './IWallet';
+import { EvmChain } from '../chains/EvmChain';
+import { EvmConnector } from '../connectors';
+import { WalletClient } from 'viem';
 
 export interface EvmTransaction {
   to: string;
@@ -11,18 +12,8 @@ export interface EvmTransaction {
   gasPrice?: string;
 }
 
-export class EvmWallet extends Wallet<
-  EvmTransaction,
-  EvmChain,
-  EvmConnector,
-  WalletClient
-> {
-  constructor(
-    _address: string,
-    chain: EvmChain,
-    connector: EvmConnector,
-    walletClient: WalletClient
-  ) {
+export class EvmWallet extends Wallet<EvmTransaction, EvmChain, EvmConnector, WalletClient> {
+  constructor(_address: string, chain: EvmChain, connector: EvmConnector, walletClient: WalletClient) {
     super(_address, chain, connector, walletClient);
   }
 

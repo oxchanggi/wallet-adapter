@@ -10,8 +10,6 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@binance/w3w-ethereum-provider": "^1.1.8-alpha.0",
-    "@metamask/sdk": "^0.33.0",
     "next": "15.3.3",
     "next": "15.3.3",
     "react": "^19.0.0",
