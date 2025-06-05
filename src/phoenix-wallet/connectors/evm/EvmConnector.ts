@@ -30,6 +30,8 @@ export abstract class EvmConnector extends Connector {
 
     this.isInitialized = true
 
+    console.log('init', this.isInitialized)
+
     this.setupEventListeners()
 
     // Check if we have a stored connection
@@ -80,12 +82,22 @@ export abstract class EvmConnector extends Connector {
     }
 
     this.provider.on('accountsChanged', (accounts: string[]) => {
+      console.log('accountsChanged', accounts)
       this.handleEventAccountChanged(accounts)
     })
 
     this.provider.on('chainChanged', (chainId: string) => {
+      console.log('chainChanged', chainId)
       this.activeChainId = chainId
       this.handleEventChainChanged(chainId)
+    })
+    this.provider.on('disconnect', () => {
+      console.log('disconnect')
+      if (this.activeAddress) {
+        this.handleEventDisconnect(this.activeAddress)
+        this.activeAddress = undefined
+        this.activeChainId = undefined
+      }
     })
   }
 
@@ -168,11 +180,11 @@ export abstract class EvmConnector extends Connector {
     }
   }
 
-  get storageConnectionStatusKey(): string {
+  protected get storageConnectionStatusKey(): string | null {
     return `${this.id}_connection_status`
   }
 
-  private checkStoredConnection(): void {
+  protected checkStoredConnection(): void {
     if (typeof localStorage !== 'undefined' && this.storageConnectionStatusKey) {
       const storedStatus = localStorage.getItem(this.storageConnectionStatusKey)
       if (storedStatus === 'connected') {
@@ -187,11 +199,11 @@ export abstract class EvmConnector extends Connector {
               })
             } else {
               // Clear stored connection if no addresses found
-              localStorage.removeItem(this.storageConnectionStatusKey)
+              localStorage.removeItem(this.storageConnectionStatusKey!)
             }
           })
           .catch(() => {
-            localStorage.removeItem(this.storageConnectionStatusKey)
+            localStorage.removeItem(this.storageConnectionStatusKey!)
           })
       }
     }
@@ -206,7 +218,7 @@ export abstract class EvmConnector extends Connector {
     this.activeChainId = undefined
 
     // Remove the connection status from localStorage
-    if (typeof localStorage !== 'undefined') {
+    if (typeof localStorage !== 'undefined' && this.storageConnectionStatusKey) {
       localStorage.removeItem(this.storageConnectionStatusKey)
     }
 
@@ -214,6 +226,10 @@ export abstract class EvmConnector extends Connector {
     if (this.provider && currentAddress) {
       this.handleEventDisconnect(currentAddress)
     }
+  }
+
+  async switchChainId(chainId: string): Promise<void> {
+    await this.provider?.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: chainId }] })
   }
 }
 

@@ -4,6 +4,7 @@ export * from './chains/EvmChain'
 export * from './chains/SolanaChain'
 export * from './wallets/IWallet'
 
+export * from './connectors/evm/BinanceEvmConnector'
 export * from './connectors/evm/EvmConnector'
 export * from './connectors/evm/MagicEdenEvmConnector'
 export * from './connectors/evm/MetamaskEvmConnector'
