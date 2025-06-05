@@ -1,5 +1,5 @@
-import { DappMetadata } from '../types'
-import { EvmConnector } from './EvmConnector'
+import { DappMetadata } from '../types';
+import { EvmConnector } from './EvmConnector';
 
 export class RainbowEvmConnector extends EvmConnector {
   constructor(dappMetadata: DappMetadata) {
@@ -10,7 +10,7 @@ export class RainbowEvmConnector extends EvmConnector {
         logo: 'https://rainbowkit.com/rainbow.svg',
       },
       dappMetadata
-    )
+    );
   }
 
     get provider(): any {
@@ -33,6 +33,6 @@ export class RainbowEvmConnector extends EvmConnector {
 
 declare global {
   interface Window {
-    rainbow?: any
+    rainbow?: any;
   }
 }

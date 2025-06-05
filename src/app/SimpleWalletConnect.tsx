@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
 import { useWalletConnectors } from '@/phoenix-wallet';
-import { ConnectorItem } from './ConnectorItem';
 import { useWallet } from '@/phoenix-wallet/hooks/useWallet';
 import { EvmTransaction } from '@/phoenix-wallet/wallets/EvmWallet';
+import React, { useState } from 'react';
+import { ConnectorItem } from './ConnectorItem';
 
 export const SimpleWalletConnect: React.FC = () => {
   const { connectors } = useWalletConnectors();
@@ -123,10 +123,12 @@ export const SimpleWalletConnect: React.FC = () => {
     }
   };
 
+
+
   return (
     <div className="p-6 max-w-3xl mx-auto bg-white">
       <h2 className="text-2xl font-bold mb-6 text-black">Connect Wallet</h2>
-      
+
       {/* Wallet Connector Selection */}
       <div className="mb-8">
         <h3 className="text-lg font-semibold mb-4 text-black">Select Wallet Connector</h3>
@@ -134,23 +136,22 @@ export const SimpleWalletConnect: React.FC = () => {
           {connectors.map((connector) => (
             <button
               key={connector.id}
-              className={`px-4 py-2 rounded-lg border ${
-                selectedConnectorId === connector.id
-                  ? 'bg-black text-white border-black'
-                  : 'bg-white text-black border-gray-300 hover:bg-gray-50'
-              }`}
+              className={`px-4 py-2 rounded-lg border ${selectedConnectorId === connector.id
+                ? 'bg-black text-white border-black'
+                : 'bg-white text-black border-gray-300 hover:bg-gray-50'
+                }`}
               onClick={() => handleConnectorSelect(connector.id)}
             >
               {connector.name}
             </button>
           ))}
         </div>
-        
+
         {selectedConnectorId && (
           <ConnectorItem connectorId={selectedConnectorId} />
         )}
       </div>
-      
+
       {/* Wallet Operations */}
       {isConnected && wallet && (
         <div className="mt-8 space-y-8">
@@ -159,7 +160,7 @@ export const SimpleWalletConnect: React.FC = () => {
             <p className="text-gray-800"><strong className="text-black">Address:</strong> <span className="font-mono text-black">{address}</span></p>
             <p className="text-gray-800"><strong className="text-black">Chain ID:</strong> <span className="font-mono text-black">{chainId}</span></p>
           </div>
-          
+
           {/* Sign Message */}
           <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-200">
             <h3 className="text-lg font-semibold mb-3 text-black">Sign Message</h3>
@@ -182,7 +183,7 @@ export const SimpleWalletConnect: React.FC = () => {
               Sign Message
             </button>
           </div>
-          
+
           {/* Sign Transaction */}
           <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-200">
             <h3 className="text-lg font-semibold mb-3 text-black">Sign Transaction</h3>
@@ -228,7 +229,7 @@ export const SimpleWalletConnect: React.FC = () => {
               Sign Transaction
             </button>
           </div>
-          
+
           {/* Send Transaction */}
           <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-200">
             <h3 className="text-lg font-semibold mb-3 text-black">Send Transaction</h3>
@@ -242,7 +243,7 @@ export const SimpleWalletConnect: React.FC = () => {
               Send Transaction
             </button>
           </div>
-          
+
           {/* Send Raw Transaction */}
           <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-200">
             <h3 className="text-lg font-semibold mb-3 text-black">Send Raw Transaction</h3>
@@ -267,23 +268,22 @@ export const SimpleWalletConnect: React.FC = () => {
           </div>
         </div>
       )}
-      
+
       {/* Operation Result */}
       {operationResult && (
-        <div className={`mt-6 p-4 rounded-lg shadow-sm border ${
-          operationResult.type === 'success' ? 'bg-gray-50 border-green-300' :
+        <div className={`mt-6 p-4 rounded-lg shadow-sm border ${operationResult.type === 'success' ? 'bg-gray-50 border-green-300' :
           operationResult.type === 'error' ? 'bg-gray-50 border-red-300' :
-          'bg-gray-50 border-yellow-300'
-        }`}>
+            'bg-gray-50 border-yellow-300'
+          }`}>
           <h3 className="font-medium mb-2 text-black">
             {operationResult.type === 'success' ? '✅ Success' :
-             operationResult.type === 'error' ? '❌ Error' :
-             '⏳ Processing'}
+              operationResult.type === 'error' ? '❌ Error' :
+                '⏳ Processing'}
           </h3>
           <p className={
             operationResult.type === 'success' ? 'text-black' :
-            operationResult.type === 'error' ? 'text-black' :
-            'text-black'
+              operationResult.type === 'error' ? 'text-black' :
+                'text-black'
           }>{operationResult.data}</p>
           {operationResult.error && (
             <p className="text-red-600 text-sm mt-1 font-medium">{operationResult.error}</p>
