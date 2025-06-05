@@ -85,13 +85,22 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({
   };
 
   const handleInstall = () => {
-    if (connector.id === "metamaskevm") {
-      window.open("https://metamask.io/download/", "_blank");
-    } else if (connector.id === "phantomevm") {
-      window.open("https://phantom.app/download", "_blank");
-    } else {
-      // Default fallback
-      window.open("https://metamask.io/download/", "_blank");
+    switch (connector.id) {
+      case "metamaskevm":
+        window.open("https://metamask.io/download/", "_blank");
+        break;
+      case "phantomevm":
+        window.open("https://phantom.app/download", "_blank");
+        break;
+      case "coinbaseevm":
+        window.open("https://www.coinbase.com/wallet/downloads", "_blank");
+        break;
+      case "rabbyevm":
+        window.open("https://rabby.io/", "_blank");
+        break;
+      case "magicedenevm":
+      default:
+        window.open("https://metamask.io/download/", "_blank");
     }
   };
 
