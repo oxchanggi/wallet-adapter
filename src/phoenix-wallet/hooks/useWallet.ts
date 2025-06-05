@@ -6,9 +6,13 @@ import { useWalletConnectorEvent } from './useWalletConnectorEvent';
 import { IWallet } from '../wallets/IWallet';
 import { ChainType, IChain } from '../chains/Chain';
 import { EvmWallet } from '../wallets/EvmWallet';
-import { EvmConnector } from '../connectors';
-import { EvmChain } from '../chains/EvmChain';
-import { JsonRpcProvider } from 'ethers';
+import { SuiWallet } from "../wallets/SuiWallet";
+import { EvmConnector } from "../connectors";
+import { SuiConnector } from "../connectors/sui/SuiConnector";
+import { EvmChain } from "../chains/EvmChain";
+import { SuiChain } from "../chains/SuiChain";
+import { JsonRpcProvider } from "ethers";
+import { SuiClient } from "@mysten/sui/client";
 // Interface for the connector-specific return values
 interface WalletState {
   connector: IConnector | null;
@@ -27,29 +31,34 @@ interface WalletState {
 
 /**
  * Hook to interact with a specific wallet connector
- * 
+ *
  * @param connectorId The connector ID to use
  * @returns Connector-specific state and methods
  */
 export function useWallet(connectorId: string): WalletState {
   const walletContext = useWalletConnectors();
-  const { connectors, activeConnectors, connectorStatuses, chainConfigs } = walletContext;
-  
+  const { connectors, activeConnectors, connectorStatuses, chainConfigs } =
+    walletContext;
+
   // State for tracking transitional statuses (connecting, error)
-  const [transitionalStatus, setTransitionalStatus] = useState<ConnectorStatus | null>(null);
+  const [transitionalStatus, setTransitionalStatus] =
+    useState<ConnectorStatus | null>(null);
   const [address, setAddress] = useState<string | null>(null);
   const [chainId, setChainId] = useState<string | null>(null);
   const [isInstalled, setIsInstalled] = useState<boolean | null>(null);
-  
+
   // Track connection attempts to prevent race conditions
   const connectionAttemptRef = useRef<number>(0);
 
   // Get the connector instance
-  const connector = useMemo(() => 
-    activeConnectors[connectorId] || connectors.find(c => c.id === connectorId) || null, 
+  const connector = useMemo(
+    () =>
+      activeConnectors[connectorId] ||
+      connectors.find((c) => c.id === connectorId) ||
+      null,
     [activeConnectors, connectors, connectorId]
   );
-  
+
   // Get current status, prioritizing transitional status
   const status = useMemo(() => {
     if (transitionalStatus) return transitionalStatus;
@@ -64,14 +73,17 @@ export function useWallet(connectorId: string): WalletState {
           const installed = await connector.isInstalled();
           setIsInstalled(installed);
         } catch (error) {
-          console.error(`Failed to check if ${connector.name} is installed:`, error);
+          console.error(
+            `Failed to check if ${connector.name} is installed:`,
+            error
+          );
           setIsInstalled(false);
         }
       } else {
         setIsInstalled(null);
       }
     };
-    
+
     checkWalletInstalled();
   }, [connector]);
 
@@ -89,7 +101,11 @@ export function useWallet(connectorId: string): WalletState {
   useWalletConnectorEvent({
     onConnect: (cId, addr, chain) => {
       if (cId === connectorId) {
-        console.log(`Connector ${cId} connected with address ${addr} on chain ${chain || 'unknown'}`);
+        console.log(
+          `Connector ${cId} connected with address ${addr} on chain ${
+            chain || "unknown"
+          }`
+        );
         // Clear transitional status and set address and chainId
         setTransitionalStatus(null);
         setAddress(addr);
@@ -109,7 +125,9 @@ export function useWallet(connectorId: string): WalletState {
     },
     onAccountChanged: (cId, addresses) => {
       if (cId === connectorId) {
-        console.log(`Connector ${cId} accounts changed to ${addresses.join(', ')}`);
+        console.log(
+          `Connector ${cId} accounts changed to ${addresses.join(", ")}`
+        );
         if (addresses.length > 0) {
           setAddress(addresses[0]);
         } else {
@@ -134,26 +152,28 @@ export function useWallet(connectorId: string): WalletState {
     try {
       // Increment connection attempt to track this specific attempt
       const currentAttempt = ++connectionAttemptRef.current;
-      
+
       // Set transitional status to connecting
       setTransitionalStatus(ConnectorStatus.CONNECTING);
-      
+
       // Call the connector's connect method
       const result = await connector.connect();
-      
+
       // Only process result if this is still the most recent connection attempt
       if (currentAttempt === connectionAttemptRef.current) {
         console.log(`Connection result for ${connectorId}:`, result);
-        
+
         // If result has an address but the status hasn't been updated via event yet,
         // we'll manually trigger a status change after a short delay
         if (result?.address) {
+          console.log("Run here:", transitionalStatus);
           // Set a timeout to ensure the status gets updated even if event doesn't fire
           setTimeout(() => {
+            console.log("Transition status:", transitionalStatus);
             if (transitionalStatus === ConnectorStatus.CONNECTING) {
               setTransitionalStatus(null);
               setAddress(result.address);
-              
+
               // Also set chainId if available
               if (result.chainId) {
                 setChainId(result.chainId);
@@ -162,7 +182,7 @@ export function useWallet(connectorId: string): WalletState {
           }, 500);
         }
       }
-      
+
       return result;
     } catch (error) {
       // Set transitional status to error
@@ -181,7 +201,7 @@ export function useWallet(connectorId: string): WalletState {
     try {
       // Call the connector's disconnect method
       await connector.disconnect();
-      
+
       // Status should be updated via event callback, but let's ensure it
       setTimeout(() => {
         if (status === ConnectorStatus.CONNECTED) {
@@ -227,13 +247,40 @@ export function useWallet(connectorId: string): WalletState {
     }
 
     if (connector.chainType === ChainType.EVM) {
-      const chain = chainConfigs.find(c => c.id === chainId && c.chainType === ChainType.EVM);
+      const chain = chainConfigs.find(
+        (c) => c.id === chainId && c.chainType === ChainType.EVM
+      );
       if (!chain) {
         return null;
       }
-      const evmChain = new EvmChain(chain.name, chain as IChain<JsonRpcProvider>);
-      return new EvmWallet(address, evmChain, connector as EvmConnector, connector.createWalletClient(evmChain));
-    } 
+      const evmChain = new EvmChain(
+        chain.name,
+        chain as IChain<JsonRpcProvider>
+      );
+      return new EvmWallet(
+        address,
+        evmChain,
+        connector as EvmConnector,
+        connector.createWalletClient(evmChain)
+      );
+    }
+
+    if (connector.chainType === ChainType.SUI) {
+      const chain = chainConfigs.find(
+        (c) => c.id === chainId && c.chainType === ChainType.SUI
+      );
+      if (!chain) {
+        return null;
+      }
+      const suiChain = new SuiChain(chain.name, chain as IChain<SuiClient>);
+      return new SuiWallet(
+        address,
+        suiChain,
+        connector as SuiConnector,
+        connector.createWalletClient(suiChain)
+      );
+    }
+
     return null;
   }, [status, address, chainId, connector, chainConfigs]);
 

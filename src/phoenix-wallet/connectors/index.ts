@@ -3,4 +3,8 @@ export * from "./evm/EvmConnector";
 export * from "./evm/MetamaskEvmConnector";
 export * from "./evm/PhantomEvmConnector";
 export * from "./solana/SolanaConnector";
+export * from "./sui/SuiConnector";
+export * from "./sui/SuietConnector";
+export * from "./sui/SlushConnector";
+export * from "./sui/PhantomSuiConnector";
 export * from "../contexts/WalletContext"; 
