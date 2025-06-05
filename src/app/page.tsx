@@ -1,13 +1,24 @@
+<<<<<<< HEAD
 'use client';
 import {
   ChainType,
   MagicEdenEvmConnector,
   OkxEvmConnector,
   RainbowEvmConnector,
+=======
+"use client";
+
+import {
+  ChainType,
+  MagicEdenEvmConnector,
+  MetamaskEvmConnector,
+  PhantomEvmConnector,
+  RainbowEvmConnector,
+  TrustWalletEvmConnector,
+>>>>>>> 5523c50cd0cf8c935b5cfb34be7062ccf121d894
   WalletProvider,
 } from "../phoenix-wallet";
 import { SimpleWalletConnect } from "./SimpleWalletConnect";
-import { MetamaskEvmConnector, PhantomEvmConnector } from "../phoenix-wallet";
 
 const dappMetadata = {
   name: "Phoenix Wallet",
@@ -17,6 +28,7 @@ const dappMetadata = {
 export const defaultConnectors = [
   new MetamaskEvmConnector(dappMetadata),
   new PhantomEvmConnector(dappMetadata),
+  new TrustWalletEvmConnector(dappMetadata),
   new MagicEdenEvmConnector(dappMetadata),
   new RainbowEvmConnector(dappMetadata),
   new OkxEvmConnector(dappMetadata),
@@ -52,13 +64,16 @@ export const chainConfigs = [
     chainId: 11155111,
     nativeCurrency: { name: "Sepolia", symbol: "ETH", decimals: 18 },
     chainType: ChainType.EVM,
-  }
+  },
 ];
-
 
 export default function Home() {
   return (
-    <WalletProvider connectors={defaultConnectors} chainConfigs={chainConfigs} reconnect="auto">
+    <WalletProvider
+      connectors={defaultConnectors}
+      chainConfigs={chainConfigs}
+      reconnect="auto"
+    >
       <SimpleWalletConnect />
     </WalletProvider>
   );

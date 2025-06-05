@@ -1,13 +1,17 @@
-import { EvmConnector } from "./EvmConnector";
-import { DappMetadata } from "../types";
+import { DappMetadata } from '../types'
+import { EvmConnector } from './EvmConnector'
 
 export class RainbowEvmConnector extends EvmConnector {
-    constructor(dappMetadata: DappMetadata) {
-        super("rainbowevm", {
-            name: "Rainbow",
-            logo:"https://rainbowkit.com/rainbow.svg"
-        }, dappMetadata);
-    }
+  constructor(dappMetadata: DappMetadata) {
+    super(
+      'rainbowevm',
+      {
+        name: 'Rainbow',
+        logo: 'https://rainbowkit.com/rainbow.svg',
+      },
+      dappMetadata
+    )
+  }
 
     get provider(): any {
         if (typeof window !== 'undefined' && window.rainbow) {
@@ -25,10 +29,10 @@ export class RainbowEvmConnector extends EvmConnector {
         }
         return false;
     }
-} 
+}
 
 declare global {
-    interface Window {
-        rainbow?: any;
-    }
-} 
+  interface Window {
+    rainbow?: any
+  }
+}
