@@ -1,9 +1,10 @@
-import { Connection, Transaction, VersionedTransaction } from '@solana/web3.js';
+import { Connection, PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js';
 import { IWallet, Wallet } from './IWallet';
 import { Chain } from '../chains/Chain';
 import { SolanaChain } from '../chains/SolanaChain';
 import { SolanaConnector } from '../connectors/solana/SolanaConnector';
 import { SolanaWalletClient } from '../connectors/solana/SolanaWalletClient';
+import { ethers } from 'ethers';
 
 export type SolanaTransaction = Transaction | VersionedTransaction;
 
@@ -48,5 +49,12 @@ export class SolanaWallet extends Wallet<SolanaTransaction, SolanaChain, SolanaC
 
   get address(): string {
     return this._address;
+  }
+
+  async getBalance(): Promise<{amount: string, uiAmount: string, decimals: number, symbol: string, name: string}> {
+    const balance = await this.chain.provider.getBalance(new PublicKey(this._address));
+    const nativeCurrency = this.chain.nativeCurrency;
+    const uiAmount = ethers.formatUnits(balance, nativeCurrency.decimals);
+    return {amount: balance.toString(), uiAmount: uiAmount, decimals: nativeCurrency.decimals, symbol: nativeCurrency.symbol, name: nativeCurrency.name};
   }
 }

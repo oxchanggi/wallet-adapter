@@ -11,7 +11,7 @@ import {
   TransactionMessage,
   MessageV0,
 } from '@solana/web3.js';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ConnectorItem } from './ConnectorItem';
 import { useTokenContract } from '@/hooks/useTokenContract';
 import { ethers } from 'ethers';
@@ -57,6 +57,39 @@ export const SimpleWalletConnect: React.FC = () => {
     chainId: chainId || '',
     wallet: wallet,
   });
+
+  const [walletBalance, setWalletBalance] = useState<{
+    amount: string;
+    uiAmount: string;
+    decimals: number;
+    symbol: string;
+    name: string;
+  } | null>(null);
+  
+  // Fetch wallet balance when wallet is connected
+  useEffect(() => {
+    if (wallet && isConnected) {
+      fetchWalletBalance();
+    } else {
+      setWalletBalance(null);
+    }
+  }, [wallet, isConnected, address]);
+  
+  const fetchWalletBalance = async () => {
+    if (!wallet) return;
+    
+    try {
+      const balance = await wallet.getBalance();
+      setWalletBalance(balance);
+    } catch (error: any) {
+      console.error('Failed to fetch wallet balance:', error);
+      setOperationResult({
+        type: 'error',
+        data: 'Failed to fetch wallet balance',
+        error: error.message,
+      });
+    }
+  };
 
   const handleConnectorSelect = (connectorId: string) => {
     setSelectedConnectorId(connectorId);
@@ -362,6 +395,35 @@ export const SimpleWalletConnect: React.FC = () => {
             <p className="text-gray-800">
               <strong className="text-black">Chain ID:</strong> <span className="font-mono text-black">{chainId}</span>
             </p>
+            
+            {/* Wallet Balance Section */}
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <div className="flex justify-between items-center">
+                <h4 className="font-medium text-black">Wallet Balance</h4>
+                <button 
+                  onClick={fetchWalletBalance}
+                  className="px-2 py-1 text-xs bg-black text-white rounded hover:bg-gray-800 transition-colors"
+                >
+                  Refresh
+                </button>
+              </div>
+              
+              {walletBalance ? (
+                <div className="mt-2">
+                  <p className="text-gray-800">
+                    <strong className="text-black">{walletBalance.name}:</strong>{' '}
+                    <span className="font-mono text-black">
+                      {walletBalance.uiAmount} {walletBalance.symbol}
+                    </span>
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Raw amount: {walletBalance.amount} (decimals: {walletBalance.decimals})
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500 mt-2">Click refresh to load balance</p>
+              )}
+            </div>
           </div>
 
           {/* Token Contract Section */}

@@ -159,7 +159,7 @@ export abstract class EvmConnector extends Connector {
         },
         rpcUrls: {
           default: {
-            http: [chain.publicRpcUrl],
+            http: [chain.privateRpcUrl],
           },
         },
       },

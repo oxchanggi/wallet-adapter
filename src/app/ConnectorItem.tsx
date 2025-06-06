@@ -114,7 +114,7 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({ connectorId }) => 
       }
 
       // Create the EvmChain instance
-      const provider = new JsonRpcProvider(chainToAdd.privateRpcUrl);
+      const provider = new JsonRpcProvider(chainToAdd.publicRpcUrl);
       const chainWithProvider = {
         ...chainToAdd,
         chainName: chainToAdd.name,
