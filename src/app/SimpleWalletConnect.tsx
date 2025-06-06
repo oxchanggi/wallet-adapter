@@ -1,7 +1,10 @@
-import { ChainType, useWalletConnectors } from '@/phoenix-wallet';
-import { useWallet } from '@/phoenix-wallet/hooks/useWallet';
-import { EvmTransaction } from '@/phoenix-wallet/wallets/EvmWallet';
-import { SolanaTransaction } from '@/phoenix-wallet/wallets/SolanaWallet';
+import {
+  ChainType,
+  useWalletConnectors,
+  useWallet,
+  EvmTransaction,
+  SolanaTransaction,
+} from '@phoenix-wallet/wallet-adapter';
 import {
   Connection,
   PublicKey,
@@ -9,7 +12,6 @@ import {
   Transaction,
   VersionedTransaction,
   TransactionMessage,
-  MessageV0,
 } from '@solana/web3.js';
 import React, { useState, useEffect } from 'react';
 import { ConnectorItem } from './ConnectorItem';

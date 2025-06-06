@@ -1,10 +1,6 @@
-import { ConnectorStatus } from '@/phoenix-wallet/connectors/types';
-import { useWallet } from '@/phoenix-wallet/hooks/useWallet';
-import React, { useState } from 'react';
-import { EvmChain } from '@/phoenix-wallet/chains/EvmChain';
-import { ChainType, IChainConfig, IChain } from '@/phoenix-wallet/chains/Chain';
+import { ConnectorStatus, useWallet, EvmChain, ChainType, useWalletConnectors } from '@phoenix-wallet/wallet-adapter';
 import { JsonRpcProvider } from 'ethers';
-import { useWalletConnectors } from '@/phoenix-wallet/contexts/WalletContext';
+import { useState } from 'react';
 
 interface ConnectorItemProps {
   connectorId: string;

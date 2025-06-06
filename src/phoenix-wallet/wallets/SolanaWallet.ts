@@ -1,6 +1,5 @@
-import { Connection, PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js';
-import { IWallet, Wallet } from './IWallet';
-import { Chain } from '../chains/Chain';
+import { PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js';
+import { Wallet } from './IWallet';
 import { SolanaChain } from '../chains/SolanaChain';
 import { SolanaConnector } from '../connectors/solana/SolanaConnector';
 import { SolanaWalletClient } from '../connectors/solana/SolanaWalletClient';

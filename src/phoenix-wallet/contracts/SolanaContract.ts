@@ -1,6 +1,4 @@
 import { Connection } from '@solana/web3.js';
-import { SolanaWallet } from '../wallets/SolanaWallet';
-import { EvmContract } from './EvmContract';
 import { Contract } from './IContract';
 
 export class SolanaContract<T> extends Contract {

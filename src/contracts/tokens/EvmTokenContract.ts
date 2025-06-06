@@ -1,5 +1,5 @@
 import { PublicClient } from 'viem';
-import { EvmContract } from '../../phoenix-wallet/contracts/EvmContract';
+import { EvmContract } from '@phoenix-wallet/wallet-adapter';
 import { ITokenContract, ResponseTransacton } from './TokenContract';
 
 const abi = [

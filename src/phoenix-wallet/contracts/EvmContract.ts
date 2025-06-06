@@ -1,5 +1,4 @@
-import { ethers, isAddress } from 'ethers';
-import { EvmWallet } from '../wallets/EvmWallet';
+import { isAddress } from 'ethers';
 import { Contract } from './IContract';
 import { Client, getContract, PublicClient } from 'viem';
 import { isValidAbi } from '../utils/contract';

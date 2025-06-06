@@ -1,5 +1,5 @@
-import { JsonRpcSigner, Wallet as EthersWallet, ethers } from 'ethers';
-import { IWallet, Wallet } from './IWallet';
+import { ethers } from 'ethers';
+import { Wallet } from './IWallet';
 import { EvmChain } from '../chains/EvmChain';
 import { EvmConnector } from '../connectors';
 import { WalletClient } from 'viem';

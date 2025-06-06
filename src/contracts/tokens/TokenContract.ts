@@ -1,8 +1,4 @@
-import { IConnector } from '@/phoenix-wallet/connectors/IConnector';
-
-import { IChain } from '@/phoenix-wallet/chains/Chain';
-
-import { IWallet } from '@/phoenix-wallet/wallets/IWallet';
+import { IWallet } from '@phoenix-wallet/wallet-adapter';
 
 export interface ResponseTransacton {
   txHash: string;

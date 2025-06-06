@@ -1,14 +1,11 @@
 import { ITokenContract } from '@/contracts/tokens/TokenContract';
-import { IConnector } from '@/phoenix-wallet/connectors/IConnector';
+import { IConnector, IWallet, useWalletConnectors } from '@phoenix-wallet/wallet-adapter';
 import { IChain, ChainType } from '@/phoenix-wallet/chains/Chain';
-import { IWallet } from '@/phoenix-wallet/wallets/IWallet';
 import { useMemo } from 'react';
 import { SolanaTokenContract } from '@/contracts/tokens/SolanaTokenContract';
 import { EvmTokenContract } from '@/contracts/tokens/EvmTokenContract';
 import { Connection } from '@solana/web3.js';
-import { chainConfigs } from '@/app/page';
 import { createPublicClient, http } from 'viem';
-import { useWalletConnectors } from '@/phoenix-wallet/connectors';
 
 interface TokenContractState {
   contract: ITokenContract | null;

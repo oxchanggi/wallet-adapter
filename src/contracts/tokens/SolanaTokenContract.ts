@@ -1,4 +1,4 @@
-import { SolanaContract } from '@/phoenix-wallet';
+import { SolanaContract } from '@phoenix-wallet/wallet-adapter';
 import { ITokenContract, ResponseTransacton } from './TokenContract';
 import { Connection, PublicKey, VersionedTransaction, TransactionMessage } from '@solana/web3.js';
 import {

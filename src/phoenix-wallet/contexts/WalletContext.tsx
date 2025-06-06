@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { WalletContextState, WalletProviderProps, ConnectorStatus } from '../connectors/types';
 import { IConnector, IConnectorCallback } from '../connectors/IConnector';
 import { IChainConfig } from '../chains/Chain';

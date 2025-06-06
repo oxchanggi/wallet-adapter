@@ -1,5 +1,4 @@
 import { IChainConfig } from '../chains/Chain';
-import { IWallet } from '../wallets/IWallet';
 import { IConnector } from './IConnector';
 export interface ConnectorConfig {
   name: string;

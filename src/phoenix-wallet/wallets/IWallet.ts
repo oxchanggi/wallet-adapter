@@ -1,4 +1,4 @@
-import { Chain, IChain } from '../chains/Chain';
+import { Chain } from '../chains/Chain';
 import { IConnector } from '../connectors/IConnector';
 
 export interface IWallet<T, K extends Chain<any>, Q extends IConnector, M> {

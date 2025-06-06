@@ -28,12 +28,12 @@ pnpm add @phoenix-wallet/wallet-adapter
 
 ```tsx
 import React from 'react';
-import { 
-  WalletProvider, 
+import {
+  WalletProvider,
   MetamaskEvmConnector,
   PhantomEvmConnector,
   SolanaConnector,
-  SolanaCluster
+  SolanaCluster,
 } from '@phoenix-wallet/wallet';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom';
 
@@ -76,7 +76,7 @@ function MultiWalletExample() {
   const metamask = useWallet('metamask');
   const phantom = useWallet('phantomevm');
   const binance = useWallet('binanceevm');
-  
+
   return (
     <div>
       <div className="wallet-section">
@@ -90,7 +90,7 @@ function MultiWalletExample() {
           <button onClick={metamask.connect}>Connect MetaMask</button>
         )}
       </div>
-      
+
       <div className="wallet-section">
         <h3>Phantom</h3>
         {phantom.isConnected ? (
@@ -102,7 +102,7 @@ function MultiWalletExample() {
           <button onClick={phantom.connect}>Connect Phantom</button>
         )}
       </div>
-      
+
       {/* All connections are maintained independently */}
       {metamask.isConnected && phantom.isConnected && (
         <div className="cross-chain-actions">
@@ -160,11 +160,7 @@ const chainConfigs = [
 
 function App() {
   return (
-    <WalletProvider 
-      connectors={yourConnectors} 
-      chainConfigs={chainConfigs}
-      reconnect="auto"
-    >
+    <WalletProvider connectors={yourConnectors} chainConfigs={chainConfigs} reconnect="auto">
       <YourApp />
     </WalletProvider>
   );
@@ -180,16 +176,8 @@ import { useWallet } from '@phoenix-wallet/wallet';
 
 function WalletConnect() {
   // You need to specify the connector ID
-  const { 
-    connect, 
-    disconnect, 
-    wallet, 
-    isConnected, 
-    isConnecting, 
-    address, 
-    chainId,
-    isInstalled
-  } = useWallet('metamask');
+  const { connect, disconnect, wallet, isConnected, isConnecting, address, chainId, isInstalled } =
+    useWallet('metamask');
 
   if (isConnected) {
     return (
@@ -202,10 +190,7 @@ function WalletConnect() {
   }
 
   return (
-    <button 
-      onClick={connect} 
-      disabled={isConnecting || isInstalled === false}
-    >
+    <button onClick={connect} disabled={isConnecting || isInstalled === false}>
       {isConnecting ? 'Connecting...' : 'Connect MetaMask'}
     </button>
   );
@@ -219,7 +204,7 @@ import { useWallet } from '@phoenix-wallet/wallet';
 
 function ChainSwitcher() {
   const { switchChain, chainId } = useWallet('metamask');
-  
+
   return (
     <div>
       <p>Current Chain: {chainId}</p>
@@ -240,13 +225,13 @@ import { useEffect, useState } from 'react';
 function WalletBalance() {
   const { wallet, isConnected } = useWallet('metamask');
   const [balance, setBalance] = useState(null);
-  
+
   useEffect(() => {
     if (wallet && isConnected) {
       fetchBalance();
     }
   }, [wallet, isConnected]);
-  
+
   const fetchBalance = async () => {
     try {
       const result = await wallet.getBalance();
@@ -255,12 +240,14 @@ function WalletBalance() {
       console.error('Failed to fetch balance:', error);
     }
   };
-  
+
   if (!isConnected || !balance) return <p>Connect wallet to see balance</p>;
-  
+
   return (
     <div>
-      <p>Balance: {balance.uiAmount} {balance.symbol}</p>
+      <p>
+        Balance: {balance.uiAmount} {balance.symbol}
+      </p>
       <button onClick={fetchBalance}>Refresh</button>
     </div>
   );
@@ -276,10 +263,10 @@ import { useWallet } from '@phoenix-wallet/wallet';
 
 function SigningExample() {
   const { wallet, isConnected } = useWallet('metamask');
-  
+
   const signMessage = async () => {
     if (!wallet) return;
-    
+
     try {
       const signature = await wallet.signMessage('Hello, Web3!');
       console.log('Message signature:', signature);
@@ -287,24 +274,24 @@ function SigningExample() {
       console.error('Signing failed:', error);
     }
   };
-  
+
   const sendTransaction = async () => {
     if (!wallet) return;
-    
+
     try {
       const transaction = {
         to: '0xRecipientAddress',
         value: '0.01', // ETH amount
-        data: '0x' // Optional data
+        data: '0x', // Optional data
       };
-      
+
       const txHash = await wallet.sendTransaction(transaction);
       console.log('Transaction hash:', txHash);
     } catch (error) {
       console.error('Transaction failed:', error);
     }
   };
-  
+
   return (
     <div>
       <button onClick={signMessage} disabled={!isConnected}>
@@ -350,10 +337,10 @@ function TokenInteraction() {
   const { wallet, isConnected } = useWallet('metamask');
   const [contract, setContract] = useState(null);
   const [balance, setBalance] = useState(null);
-  
+
   useEffect(() => {
     if (!isConnected || !wallet) return;
-    
+
     // For EVM chains
     if (wallet.chain.chainType === ChainType.EVM) {
       // Create a public client for the chain
@@ -368,24 +355,24 @@ function TokenInteraction() {
         },
         transport: http(wallet.chain.privateRpcUrl),
       });
-      
+
       // Create the contract instance
       const contractInstance = new EvmContract(
         publicClient,
         '0xTokenAddress', // Your token contract address
         tokenAbi
       );
-      
+
       // Assign the wallet to the contract to enable write operations
       contractInstance.wallet = wallet;
-      
+
       setContract(contractInstance);
     }
   }, [wallet, isConnected]);
-  
+
   const getBalance = async () => {
     if (!contract || !wallet) return;
-    
+
     try {
       const balanceWei = await contract.contract.read.balanceOf([wallet.address]);
       setBalance(balanceWei.toString());
@@ -393,16 +380,16 @@ function TokenInteraction() {
       console.error('Failed to get balance:', error);
     }
   };
-  
+
   const sendTokens = async () => {
     if (!contract || !wallet) return;
-    
+
     try {
       const tx = await contract.contract.write.transfer(
         ['0xRecipientAddress', BigInt('1000000000000000000')], // 1 token with 18 decimals
         { account: wallet.address }
       );
-      
+
       // Wait for transaction confirmation
       const receipt = await contract.waitTransaction(tx);
       console.log('Transaction confirmed:', receipt);
@@ -410,12 +397,16 @@ function TokenInteraction() {
       console.error('Transfer failed:', error);
     }
   };
-  
+
   return (
     <div>
-      <button onClick={getBalance} disabled={!contract}>Get Token Balance</button>
+      <button onClick={getBalance} disabled={!contract}>
+        Get Token Balance
+      </button>
       {balance && <p>Balance: {balance}</p>}
-      <button onClick={sendTokens} disabled={!contract}>Send Tokens</button>
+      <button onClick={sendTokens} disabled={!contract}>
+        Send Tokens
+      </button>
     </div>
   );
 }
