@@ -11,6 +11,11 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^7.1.1",
+    "@mui/material": "^7.1.1",
+    "@mui/x-data-grid": "^8.5.1",
     "@solana/spl-token": "^0.4.13",
     "@solana/wallet-adapter-phantom": "^0.9.27",
     "@solana/web3.js": "^1.98.2",
