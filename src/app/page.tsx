@@ -13,6 +13,7 @@ import {
   WalletProvider,
   SolanaConnector,
   SolanaCluster,
+  BitgetEvmConnector,
 } from '../phoenix-wallet';
 import { SimpleWalletConnect } from './SimpleWalletConnect';
 import { CoinbaseEvmConnector } from '@/phoenix-wallet/connectors/evm/CoinbaseEvmConnector';
@@ -32,7 +33,7 @@ export const defaultConnectors = [
   new RabbyEvmConnector(dappMetadata),
   new OkxEvmConnector(dappMetadata),
   new BinanceEvmConnector(dappMetadata),
-
+  new BitgetEvmConnector(dappMetadata),
   // Solana
   new SolanaConnector(dappMetadata, new PhantomWalletAdapter(), SolanaCluster.DEVNET),
 ];

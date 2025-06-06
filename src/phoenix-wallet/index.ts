@@ -20,6 +20,7 @@ export * from './connectors/evm/OkxEvmConnector';
 export * from './connectors/evm/TrustWalletEvmConnector';
 export * from './connectors/evm/BinanceEvmConnector';
 export * from './connectors/evm/EvmConnector';
+export * from './connectors/evm/BitgetEvmConnector';
 export * from './connectors/solana/SolanaConnector';
 export * from './connectors/types';
 export * from './connectors/index';
