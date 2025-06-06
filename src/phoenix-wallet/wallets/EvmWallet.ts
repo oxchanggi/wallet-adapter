@@ -55,6 +55,10 @@ export class EvmWallet extends Wallet<EvmTransaction, EvmChain, EvmConnector, Wa
     });
   }
 
+  signAllTransactions(transactions: EvmTransaction[]): Promise<string[]> {
+    throw new Error('Method not supported');
+  }
+
   get walletClient(): WalletClient {
     return this._walletClient;
   }

@@ -2,8 +2,13 @@
 export * from './chains/Chain';
 export * from './chains/EvmChain';
 export * from './chains/SolanaChain';
-export * from './wallets/IWallet';
 
+// Wallets
+export * from './wallets/IWallet';
+export * from './wallets/EvmWallet';
+export * from './wallets/SolanaWallet';
+
+// Connectors
 export * from "./wallets/EvmWallet";
 export * from "./wallets/SuiWallet";
 
@@ -27,6 +32,7 @@ export * from "./connectors/sui/SuiConnector";
 export * from "./connectors/sui/SuietConnector";
 export * from "./connectors/sui/SlushConnector";
 export * from "./connectors/sui/PhantomSuiConnector";
+export * from './connectors/solana/SolanaConnector';
 export * from './connectors/types';
 export * from './connectors/index';
 
