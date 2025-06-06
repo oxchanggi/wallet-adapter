@@ -24,6 +24,11 @@ export * from './connectors/solana/SolanaConnector';
 export * from './connectors/types';
 export * from './connectors/index';
 
+// Contracts
+export * from './contracts/IContract';
+export * from './contracts/EvmContract';
+export * from './contracts/SolanaContract';
+
 // Contexts
 export { useWalletConnectors, WalletProvider } from './contexts/WalletContext';
 

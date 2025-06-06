@@ -13,6 +13,8 @@ import {
 } from '@solana/web3.js';
 import React, { useState } from 'react';
 import { ConnectorItem } from './ConnectorItem';
+import { useTokenContract } from '@/hooks/useTokenContract';
+import { ethers } from 'ethers';
 
 export const SimpleWalletConnect: React.FC = () => {
   const { connectors } = useWalletConnectors();
@@ -35,12 +37,31 @@ export const SimpleWalletConnect: React.FC = () => {
   } | null>(null);
   const [solanaMultipleTransactions, setSolanaMultipleTransactions] = useState<boolean>(false);
   const [useVersionedTransaction, setUseVersionedTransaction] = useState<boolean>(false);
+  
+  // Token contract states
+  const [tokenAddress, setTokenAddress] = useState<string>('');
+  const [tokenRecipient, setTokenRecipient] = useState<string>('');
+  const [tokenAmount, setTokenAmount] = useState<string>('');
+  const [tokenInfo, setTokenInfo] = useState<{
+    symbol: string;
+    decimals: number;
+    totalSupply: string;
+    balance: string;
+  } | null>(null);
 
   const { wallet, isConnected, address, chainId } = useWallet(selectedConnectorId);
+  
+  // Initialize token contract
+  const { contract: tokenContract, error: tokenContractError } = useTokenContract({
+    contractAddress: tokenAddress,
+    chainId: chainId || '',
+    wallet: wallet,
+  });
 
   const handleConnectorSelect = (connectorId: string) => {
     setSelectedConnectorId(connectorId);
     setOperationResult(null);
+    setTokenInfo(null);
   };
 
   const handleSignMessage = async () => {
@@ -223,6 +244,83 @@ export const SimpleWalletConnect: React.FC = () => {
       });
     }
   };
+  
+  // Token Contract Functions
+  const handleGetTokenInfo = async () => {
+    if (!tokenContract || !address) return;
+    console.log(tokenContract, address);
+    
+    try {
+      setOperationResult({ type: 'loading', data: 'Fetching token information...' });
+      
+      const [symbol, decimals, totalSupply, balance] = await Promise.all([
+        tokenContract.getSymbol(),
+        tokenContract.getDecimals(),
+        tokenContract.getTotalSupply(),
+        tokenContract.getBalance(address)
+      ]);
+      
+      console.log(symbol, decimals, totalSupply, balance);
+      
+      setTokenInfo({
+        symbol,
+        decimals,
+        totalSupply,
+        balance: balance.uiAmount
+      });
+      
+      setOperationResult({
+        type: 'success',
+        data: `Token information fetched successfully!`,
+      });
+    } catch (error: any) {
+      console.error(error);
+      setOperationResult({
+        type: 'error',
+        data: 'Failed to fetch token information',
+        error: error.message,
+      });
+    }
+  };
+  
+  const handleTransferToken = async () => {
+    if (!tokenContract || !tokenRecipient || !tokenAmount) return;
+    
+    try {
+      setOperationResult({ type: 'loading', data: 'Transferring tokens...' });
+      
+      // Get token decimals to calculate the correct amount
+      const decimals = await tokenContract.getDecimals();
+      const amountInSmallestUnit = ethers.parseUnits(tokenAmount, decimals).toString();
+      
+      // Perform the transfer
+      const response = await tokenContract.transfer(tokenRecipient, amountInSmallestUnit);
+      setOperationResult({
+        type: 'Transaction submitted',
+        data: `Transaction submitted! TX Hash: ${response.txHash}`,
+      });
+      // Wait for transaction confirmation
+      await response.wait();
+      
+      setOperationResult({
+        type: 'success',
+        data: `Tokens transferred successfully! TX Hash: ${response.txHash}`,
+      });
+      
+      // Update token balance after transfer
+      if (address) {
+        const balance = await tokenContract.getBalance(address);
+        setTokenInfo(prev => prev ? { ...prev, balance: balance.uiAmount } : null);
+      }
+    } catch (error: any) {
+      console.error(error);
+      setOperationResult({
+        type: 'error',
+        data: 'Failed to transfer tokens',
+        error: error.message,
+      });
+    }
+  };
 
   // Determine if the selected connector is Solana
   const isSolana = wallet?.chain.chainType === ChainType.SOLANA;
@@ -264,6 +362,82 @@ export const SimpleWalletConnect: React.FC = () => {
             <p className="text-gray-800">
               <strong className="text-black">Chain ID:</strong> <span className="font-mono text-black">{chainId}</span>
             </p>
+          </div>
+
+          {/* Token Contract Section */}
+          <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+            <h3 className="text-lg font-semibold mb-3 text-black">Token Contract</h3>
+            <div className="space-y-3 mb-3">
+              <div>
+                <label className="block text-sm font-medium text-black mb-1">Token Address</label>
+                <input
+                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-black focus:border-black focus:outline-none transition placeholder-gray-400 text-black"
+                  value={tokenAddress}
+                  onChange={(e) => setTokenAddress(e.target.value)}
+                  placeholder={isSolana ? 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' : '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'}
+                />
+              </div>
+              <button
+                className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors shadow-sm"
+                onClick={handleGetTokenInfo}
+                disabled={!tokenAddress}
+              >
+                Get Token Info
+              </button>
+              
+              {tokenInfo && (
+                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                  <h4 className="font-medium mb-2 text-black">Token Information</h4>
+                  <div className="space-y-1">
+                    <p className="text-sm text-gray-800">
+                      <strong className="text-black">Symbol:</strong> {tokenInfo.symbol}
+                    </p>
+                    <p className="text-sm text-gray-800">
+                      <strong className="text-black">Decimals:</strong> {tokenInfo.decimals}
+                    </p>
+                    <p className="text-sm text-gray-800">
+                      <strong className="text-black">Total Supply:</strong> {tokenInfo.totalSupply}
+                    </p>
+                    <p className="text-sm text-gray-800">
+                      <strong className="text-black">Your Balance:</strong> {tokenInfo.balance}
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              <div className="mt-4">
+                <h4 className="font-medium mb-2 text-black">Transfer Tokens</h4>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-1">Recipient Address</label>
+                    <input
+                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-black focus:border-black focus:outline-none transition placeholder-gray-400 text-black"
+                      value={tokenRecipient}
+                      onChange={(e) => setTokenRecipient(e.target.value)}
+                      placeholder={isSolana ? '5YNmS1R9nNSCDzb5a7mMJ1dwK9uHeAAF4CerVnwgX5r' : '0x1234...5678'}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-1">Amount</label>
+                    <input
+                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-black focus:border-black focus:outline-none transition placeholder-gray-400 text-black"
+                      value={tokenAmount}
+                      onChange={(e) => setTokenAmount(e.target.value)}
+                      placeholder="1.0"
+                      type="number"
+                      step="0.000001"
+                    />
+                  </div>
+                  <button
+                    className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors shadow-sm"
+                    onClick={handleTransferToken}
+                    disabled={!tokenRecipient || !tokenAmount || !tokenContract}
+                  >
+                    Transfer Tokens
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Sign Message */}

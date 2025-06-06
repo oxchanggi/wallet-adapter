@@ -41,8 +41,8 @@ export const chainConfigs = [
   {
     id: '1',
     name: 'Ethereum',
-    publicRpcUrl: 'https://mainnet.infura.io/v3/YOUR_INFURA_KEY',
-    privateRpcUrl: 'https://mainnet.infura.io/v3/YOUR_INFURA_KEY',
+    publicRpcUrl: 'https://eth.llamarpc.com',
+    privateRpcUrl: 'https://eth.llamarpc.com',
     explorerUrl: 'https://etherscan.io',
     chainId: 1,
     nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
@@ -61,8 +61,8 @@ export const chainConfigs = [
   {
     id: '11155111',
     name: 'Sepolia',
-    publicRpcUrl: 'https://sepolia.infura.io/v3/YOUR_INFURA_KEY',
-    privateRpcUrl: 'https://sepolia.infura.io/v3/YOUR_INFURA_KEY',
+    publicRpcUrl: 'https://ethereum-sepolia-rpc.publicnode.com',
+    privateRpcUrl: 'https://ethereum-sepolia-rpc.publicnode.com',
     explorerUrl: 'https://sepolia.etherscan.io',
     chainId: 11155111,
     nativeCurrency: { name: 'Sepolia', symbol: 'ETH', decimals: 18 },
