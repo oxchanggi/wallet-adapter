@@ -1,13 +1,13 @@
 import { ConnectorStatus, useWallet, EvmChain, ChainType, useWalletConnectors } from '@phoenix-wallet/wallet-adapter';
 import { JsonRpcProvider } from 'ethers';
-import { useState } from 'react';
-import { 
-  Button, 
-  Box, 
-  Card, 
+import { useState, useEffect } from 'react';
+import {
+  Button,
+  Box,
+  Card,
   CardContent,
   CardHeader,
-  Typography, 
+  Typography,
   TextField,
   Select,
   MenuItem,
@@ -22,19 +22,19 @@ import {
   Paper,
   Avatar,
   IconButton,
-  Tooltip
+  Tooltip,
 } from '@mui/material';
-import { 
-  AccountBalanceWallet, 
-  ContentCopy, 
-  AddCircle, 
-  Sync, 
+import {
+  AccountBalanceWallet,
+  ContentCopy,
+  AddCircle,
+  Sync,
   Download,
   Link as LinkIcon,
   Check,
   PowerSettingsNew,
   Refresh,
-  Info
+  Info,
 } from '@mui/icons-material';
 
 interface ConnectorItemProps {
@@ -65,6 +65,17 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({ connectorId }) => 
   const [addChainError, setAddChainError] = useState<string | null>(null);
   const [selectedChainId, setSelectedChainId] = useState<string>('');
   const [copied, setCopied] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    // Check if user is on a mobile device
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+      return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+    };
+
+    setIsMobile(checkMobile());
+  }, []);
 
   if (!connector) {
     return null;
@@ -177,17 +188,17 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({ connectorId }) => 
     <Card elevation={3} sx={{ mt: 4, borderRadius: 2, overflow: 'visible' }}>
       <CardHeader
         avatar={
-          <Avatar 
-            sx={{ 
-              width: 56, 
-              height: 56, 
+          <Avatar
+            sx={{
+              width: 56,
+              height: 56,
               bgcolor: 'background.paper',
               border: '1px solid',
-              borderColor: 'divider'
+              borderColor: 'divider',
             }}
           >
             {connector.logo ? (
-              <Box 
+              <Box
                 component="img"
                 src={connector.logo}
                 alt={`${connector.name} logo`}
@@ -206,12 +217,7 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({ connectorId }) => 
             <Typography variant="h6" component="h3">
               {connector.name}
             </Typography>
-            <Chip 
-              label={getStatusText()} 
-              size="small" 
-              color={getStatusColor()}
-              sx={{ ml: 1 }}
-            />
+            <Chip label={getStatusText()} size="small" color={getStatusColor()} sx={{ ml: 1 }} />
           </Box>
         }
         subheader={
@@ -227,9 +233,9 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({ connectorId }) => 
           )
         }
       />
-      
+
       <Divider />
-      
+
       <CardContent>
         {isConnected && address && (
           <Box sx={{ mb: 3, p: 2, bgcolor: 'background.default', borderRadius: 2 }}>
@@ -240,12 +246,8 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({ connectorId }) => 
               <Typography variant="body1" fontFamily="monospace" sx={{ wordBreak: 'break-all' }}>
                 {address}
               </Typography>
-              <Tooltip title={copied ? "Copied!" : "Copy to clipboard"}>
-                <IconButton 
-                  size="small" 
-                  sx={{ ml: 1 }}
-                  onClick={() => copyToClipboard(address || '')}
-                >
+              <Tooltip title={copied ? 'Copied!' : 'Copy to clipboard'}>
+                <IconButton size="small" sx={{ ml: 1 }} onClick={() => copyToClipboard(address || '')}>
                   {copied ? <Check fontSize="small" color="success" /> : <ContentCopy fontSize="small" />}
                 </IconButton>
               </Tooltip>
@@ -256,12 +258,7 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({ connectorId }) => 
                   <strong>Chain ID:</strong> {chainId}
                 </Typography>
                 {wallet && (
-                  <Button 
-                    variant="outlined" 
-                    size="small" 
-                    startIcon={<Sync />}
-                    onClick={() => wallet.getBalance()}
-                  >
+                  <Button variant="outlined" size="small" startIcon={<Sync />} onClick={() => wallet.getBalance()}>
                     Refresh Balance
                   </Button>
                 )}
@@ -271,7 +268,7 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({ connectorId }) => 
         )}
 
         <Box sx={{ mt: 2 }}>
-          {isInstalled === false && (
+          {isInstalled === false && !isMobile && (
             <Button
               fullWidth
               variant="contained"
@@ -285,7 +282,7 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({ connectorId }) => 
             </Button>
           )}
 
-          {isInstalled && isDisconnected && (
+          {(isInstalled || isMobile) && isDisconnected && (
             <Button
               fullWidth
               variant="contained"
@@ -378,21 +375,15 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({ connectorId }) => 
             <Alert severity="error" sx={{ mb: 2 }}>
               {connectionError || 'Failed to connect. Please try again.'}
             </Alert>
-            <Button
-              fullWidth
-              variant="contained"
-              color="primary"
-              onClick={handleConnect}
-              startIcon={<Refresh />}
-            >
+            <Button fullWidth variant="contained" color="primary" onClick={handleConnect} startIcon={<Refresh />}>
               Retry Connection
             </Button>
           </Box>
         )}
       </CardContent>
-      
+
       <Divider />
-      
+
       <Box sx={{ p: 2, bgcolor: 'background.default' }}>
         <Typography variant="caption" color="text.secondary">
           Connector ID: <span style={{ fontFamily: 'monospace' }}>{connectorId}</span>

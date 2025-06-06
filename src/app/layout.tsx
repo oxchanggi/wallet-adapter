@@ -14,7 +14,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'Phoenix Wallet Demo',
-  description: 'Interactive demo for Phoenix Wallet showcasing blockchain wallet connections, transactions, and token operations',
+  description:
+    'Interactive demo for Phoenix Wallet showcasing blockchain wallet connections, transactions, and token operations',
   keywords: ['blockchain', 'crypto wallet', 'web3', 'ethereum', 'solana', 'wallet connect', 'phoenix wallet'],
   authors: [{ name: 'Phoenix Wallet Team' }],
   creator: 'Phoenix Wallet',

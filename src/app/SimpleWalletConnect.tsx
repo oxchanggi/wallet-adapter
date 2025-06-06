@@ -17,37 +17,37 @@ import React, { useState, useEffect } from 'react';
 import { ConnectorItem } from './ConnectorItem';
 import { useTokenContract } from '@/hooks/useTokenContract';
 import { ethers } from 'ethers';
-import { 
-  Button, 
-  TextField, 
-  Container, 
-  Typography, 
-  Box, 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  Divider, 
-  Paper, 
-  Switch, 
-  FormControlLabel, 
-  Chip, 
-  Alert, 
+import {
+  Button,
+  TextField,
+  Container,
+  Typography,
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  Divider,
+  Paper,
+  Switch,
+  FormControlLabel,
+  Chip,
+  Alert,
   Stack,
   ButtonGroup,
   CircularProgress,
-  InputAdornment
+  InputAdornment,
 } from '@mui/material';
-import { 
-  AccountBalanceWallet, 
-  Send, 
-  ContentCopy, 
-  CheckCircle, 
-  Warning, 
-  Error as ErrorIcon, 
-  Info, 
+import {
+  AccountBalanceWallet,
+  Send,
+  ContentCopy,
+  CheckCircle,
+  Warning,
+  Error as ErrorIcon,
+  Info,
   Sync,
   Token,
-  Payment
+  Payment,
 } from '@mui/icons-material';
 
 export const SimpleWalletConnect: React.FC = () => {
@@ -404,10 +404,10 @@ export const SimpleWalletConnect: React.FC = () => {
           <AccountBalanceWallet sx={{ mr: 1, verticalAlign: 'middle' }} />
           Select Wallet Connector
         </Typography>
-        
+
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3, justifyContent: 'center' }}>
           {connectors.map((connector) => (
-            <Card 
+            <Card
               key={connector.id}
               variant="outlined"
               onClick={() => handleConnectorSelect(connector.id)}
@@ -428,24 +428,26 @@ export const SimpleWalletConnect: React.FC = () => {
                 '&:hover': {
                   transform: 'translateY(-4px)',
                   boxShadow: 3,
-                }
+                },
               }}
             >
-              <Box sx={{ 
-                width: 64, 
-                height: 64, 
-                borderRadius: '50%', 
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                bgcolor: 'background.paper',
-                border: '1px solid',
-                borderColor: 'divider',
-                p: 1,
-                mb: 2
-              }}>
+              <Box
+                sx={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  bgcolor: 'background.paper',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  p: 1,
+                  mb: 2,
+                }}
+              >
                 {connector.logo ? (
-                  <Box 
+                  <Box
                     component="img"
                     src={connector.logo}
                     alt={`${connector.name} logo`}
@@ -461,10 +463,10 @@ export const SimpleWalletConnect: React.FC = () => {
               <Typography variant="subtitle1" fontWeight={selectedConnectorId === connector.id ? 'bold' : 'normal'}>
                 {connector.name}
               </Typography>
-              <Chip 
-                label={connector.chainType} 
-                size="small" 
-                color={connector.chainType === ChainType.EVM ? "secondary" : "info"}
+              <Chip
+                label={connector.chainType}
+                size="small"
+                color={connector.chainType === ChainType.EVM ? 'secondary' : 'info'}
                 sx={{ mt: 1, opacity: 0.9 }}
               />
             </Card>
@@ -479,7 +481,7 @@ export const SimpleWalletConnect: React.FC = () => {
         <Stack spacing={3}>
           {/* Wallet Info */}
           <Card elevation={3}>
-            <CardHeader 
+            <CardHeader
               title={
                 <Typography variant="h6">
                   <AccountBalanceWallet sx={{ mr: 1, verticalAlign: 'middle' }} />
@@ -490,13 +492,15 @@ export const SimpleWalletConnect: React.FC = () => {
             <CardContent>
               <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 2 }}>
                 <Box sx={{ flex: 1 }}>
-                  <Typography variant="subtitle2" color="text.secondary">Address</Typography>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Address
+                  </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <Typography variant="body1" fontFamily="monospace" sx={{ wordBreak: 'break-all' }}>
                       {address}
                     </Typography>
-                    <Button 
-                      size="small" 
+                    <Button
+                      size="small"
                       sx={{ ml: 1 }}
                       onClick={() => {
                         navigator.clipboard.writeText(address || '');
@@ -507,7 +511,9 @@ export const SimpleWalletConnect: React.FC = () => {
                   </Box>
                 </Box>
                 <Box sx={{ flex: 1 }}>
-                  <Typography variant="subtitle2" color="text.secondary">Chain ID</Typography>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Chain ID
+                  </Typography>
                   <Typography variant="body1" fontFamily="monospace">
                     {chainId}
                   </Typography>
@@ -518,12 +524,7 @@ export const SimpleWalletConnect: React.FC = () => {
 
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h6">Wallet Balance</Typography>
-                <Button 
-                  variant="outlined" 
-                  size="small" 
-                  startIcon={<Sync />}
-                  onClick={fetchWalletBalance}
-                >
+                <Button variant="outlined" size="small" startIcon={<Sync />} onClick={fetchWalletBalance}>
                   Refresh
                 </Button>
               </Box>
@@ -550,7 +551,7 @@ export const SimpleWalletConnect: React.FC = () => {
 
           {/* Token Contract Section */}
           <Card elevation={3}>
-            <CardHeader 
+            <CardHeader
               title={
                 <Typography variant="h6">
                   <Token sx={{ mr: 1, verticalAlign: 'middle' }} />
@@ -642,9 +643,7 @@ export const SimpleWalletConnect: React.FC = () => {
                       type="number"
                       variant="outlined"
                       InputProps={{
-                        endAdornment: tokenInfo && (
-                          <InputAdornment position="end">{tokenInfo.symbol}</InputAdornment>
-                        ),
+                        endAdornment: tokenInfo && <InputAdornment position="end">{tokenInfo.symbol}</InputAdornment>,
                       }}
                     />
                     <Button
@@ -681,13 +680,7 @@ export const SimpleWalletConnect: React.FC = () => {
                   variant="outlined"
                   margin="normal"
                 />
-                <Button
-                  fullWidth
-                  variant="contained"
-                  color="primary"
-                  onClick={handleSignMessage}
-                  sx={{ mt: 2 }}
-                >
+                <Button fullWidth variant="contained" color="primary" onClick={handleSignMessage} sx={{ mt: 2 }}>
                   Sign Message
                 </Button>
               </CardContent>
@@ -738,13 +731,7 @@ export const SimpleWalletConnect: React.FC = () => {
                     sx={{ mt: 1 }}
                   />
                 )}
-                <Button
-                  fullWidth
-                  variant="contained"
-                  color="primary"
-                  onClick={handleSignTransaction}
-                  sx={{ mt: 2 }}
-                >
+                <Button fullWidth variant="contained" color="primary" onClick={handleSignTransaction} sx={{ mt: 2 }}>
                   Sign Transaction
                 </Button>
               </CardContent>
@@ -761,12 +748,7 @@ export const SimpleWalletConnect: React.FC = () => {
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                     Sign multiple transactions at once using the same transaction data
                   </Typography>
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    color="primary"
-                    onClick={handleSignAllTransactions}
-                  >
+                  <Button fullWidth variant="contained" color="primary" onClick={handleSignAllTransactions}>
                     Sign Multiple Transactions
                   </Button>
                 </CardContent>
@@ -812,7 +794,7 @@ export const SimpleWalletConnect: React.FC = () => {
                 variant="outlined"
                 margin="normal"
                 InputProps={{
-                  style: { fontFamily: 'monospace' }
+                  style: { fontFamily: 'monospace' },
                 }}
               />
               <Button
@@ -832,17 +814,18 @@ export const SimpleWalletConnect: React.FC = () => {
 
       {/* Operation Result */}
       {operationResult && (
-        <Paper 
-          elevation={3} 
-          sx={{ 
-            mt: 4, 
-            p: 3, 
-            bgcolor: operationResult.type === 'success' 
-              ? 'success.light' 
-              : operationResult.type === 'error' 
-                ? 'error.light' 
-                : 'warning.light',
-            color: 'text.primary'
+        <Paper
+          elevation={3}
+          sx={{
+            mt: 4,
+            p: 3,
+            bgcolor:
+              operationResult.type === 'success'
+                ? 'success.light'
+                : operationResult.type === 'error'
+                  ? 'error.light'
+                  : 'warning.light',
+            color: 'text.primary',
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }}>
