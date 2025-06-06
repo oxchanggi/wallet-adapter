@@ -63,11 +63,17 @@ export class EvmWallet extends Wallet<EvmTransaction, EvmChain, EvmConnector, Wa
     return this._walletClient;
   }
 
-  async getBalance(): Promise<{amount: string, uiAmount: string, decimals: number, symbol: string, name: string}> {
+  async getBalance(): Promise<{ amount: string; uiAmount: string; decimals: number; symbol: string; name: string }> {
     const balance = await this.chain.provider.getBalance(this._address as `0x${string}`);
-    
+
     const nativeCurrency = this.chain.nativeCurrency;
     const uiAmount = ethers.formatUnits(balance, nativeCurrency.decimals);
-    return {amount: balance.toString(), uiAmount: uiAmount, decimals: nativeCurrency.decimals, symbol: nativeCurrency.symbol, name: nativeCurrency.name};
+    return {
+      amount: balance.toString(),
+      uiAmount: uiAmount,
+      decimals: nativeCurrency.decimals,
+      symbol: nativeCurrency.symbol,
+      name: nativeCurrency.name,
+    };
   }
 }

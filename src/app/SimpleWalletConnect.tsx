@@ -37,7 +37,7 @@ export const SimpleWalletConnect: React.FC = () => {
   } | null>(null);
   const [solanaMultipleTransactions, setSolanaMultipleTransactions] = useState<boolean>(false);
   const [useVersionedTransaction, setUseVersionedTransaction] = useState<boolean>(false);
-  
+
   // Token contract states
   const [tokenAddress, setTokenAddress] = useState<string>('');
   const [tokenRecipient, setTokenRecipient] = useState<string>('');
@@ -50,7 +50,7 @@ export const SimpleWalletConnect: React.FC = () => {
   } | null>(null);
 
   const { wallet, isConnected, address, chainId } = useWallet(selectedConnectorId);
-  
+
   // Initialize token contract
   const { contract: tokenContract, error: tokenContractError } = useTokenContract({
     contractAddress: tokenAddress,
@@ -65,7 +65,7 @@ export const SimpleWalletConnect: React.FC = () => {
     symbol: string;
     name: string;
   } | null>(null);
-  
+
   // Fetch wallet balance when wallet is connected
   useEffect(() => {
     if (wallet && isConnected) {
@@ -74,10 +74,10 @@ export const SimpleWalletConnect: React.FC = () => {
       setWalletBalance(null);
     }
   }, [wallet, isConnected, address]);
-  
+
   const fetchWalletBalance = async () => {
     if (!wallet) return;
-    
+
     try {
       const balance = await wallet.getBalance();
       setWalletBalance(balance);
@@ -277,31 +277,31 @@ export const SimpleWalletConnect: React.FC = () => {
       });
     }
   };
-  
+
   // Token Contract Functions
   const handleGetTokenInfo = async () => {
     if (!tokenContract || !address) return;
     console.log(tokenContract, address);
-    
+
     try {
       setOperationResult({ type: 'loading', data: 'Fetching token information...' });
-      
+
       const [symbol, decimals, totalSupply, balance] = await Promise.all([
         tokenContract.getSymbol(),
         tokenContract.getDecimals(),
         tokenContract.getTotalSupply(),
-        tokenContract.getBalance(address)
+        tokenContract.getBalance(address),
       ]);
-      
+
       console.log(symbol, decimals, totalSupply, balance);
-      
+
       setTokenInfo({
         symbol,
         decimals,
         totalSupply,
-        balance: balance.uiAmount
+        balance: balance.uiAmount,
       });
-      
+
       setOperationResult({
         type: 'success',
         data: `Token information fetched successfully!`,
@@ -315,17 +315,17 @@ export const SimpleWalletConnect: React.FC = () => {
       });
     }
   };
-  
+
   const handleTransferToken = async () => {
     if (!tokenContract || !tokenRecipient || !tokenAmount) return;
-    
+
     try {
       setOperationResult({ type: 'loading', data: 'Transferring tokens...' });
-      
+
       // Get token decimals to calculate the correct amount
       const decimals = await tokenContract.getDecimals();
       const amountInSmallestUnit = ethers.parseUnits(tokenAmount, decimals).toString();
-      
+
       // Perform the transfer
       const response = await tokenContract.transfer(tokenRecipient, amountInSmallestUnit);
       setOperationResult({
@@ -334,16 +334,16 @@ export const SimpleWalletConnect: React.FC = () => {
       });
       // Wait for transaction confirmation
       await response.wait();
-      
+
       setOperationResult({
         type: 'success',
         data: `Tokens transferred successfully! TX Hash: ${response.txHash}`,
       });
-      
+
       // Update token balance after transfer
       if (address) {
         const balance = await tokenContract.getBalance(address);
-        setTokenInfo(prev => prev ? { ...prev, balance: balance.uiAmount } : null);
+        setTokenInfo((prev) => (prev ? { ...prev, balance: balance.uiAmount } : null));
       }
     } catch (error: any) {
       console.error(error);
@@ -395,19 +395,19 @@ export const SimpleWalletConnect: React.FC = () => {
             <p className="text-gray-800">
               <strong className="text-black">Chain ID:</strong> <span className="font-mono text-black">{chainId}</span>
             </p>
-            
+
             {/* Wallet Balance Section */}
             <div className="mt-3 pt-3 border-t border-gray-200">
               <div className="flex justify-between items-center">
                 <h4 className="font-medium text-black">Wallet Balance</h4>
-                <button 
+                <button
                   onClick={fetchWalletBalance}
                   className="px-2 py-1 text-xs bg-black text-white rounded hover:bg-gray-800 transition-colors"
                 >
                   Refresh
                 </button>
               </div>
-              
+
               {walletBalance ? (
                 <div className="mt-2">
                   <p className="text-gray-800">
@@ -436,7 +436,11 @@ export const SimpleWalletConnect: React.FC = () => {
                   className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-black focus:border-black focus:outline-none transition placeholder-gray-400 text-black"
                   value={tokenAddress}
                   onChange={(e) => setTokenAddress(e.target.value)}
-                  placeholder={isSolana ? 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' : '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'}
+                  placeholder={
+                    isSolana
+                      ? 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
+                      : '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
+                  }
                 />
               </div>
               <button
@@ -446,7 +450,7 @@ export const SimpleWalletConnect: React.FC = () => {
               >
                 Get Token Info
               </button>
-              
+
               {tokenInfo && (
                 <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                   <h4 className="font-medium mb-2 text-black">Token Information</h4>
@@ -466,7 +470,7 @@ export const SimpleWalletConnect: React.FC = () => {
                   </div>
                 </div>
               )}
-              
+
               <div className="mt-4">
                 <h4 className="font-medium mb-2 text-black">Transfer Tokens</h4>
                 <div className="space-y-3">
