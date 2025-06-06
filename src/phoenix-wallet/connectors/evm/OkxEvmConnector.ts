@@ -28,6 +28,10 @@ export class OkxEvmConnector extends EvmConnector {
     }
     return false;
   }
+
+  get installLink(): string {
+    return 'https://web3.okx.com/download';
+  }
 }
 
 declare global {

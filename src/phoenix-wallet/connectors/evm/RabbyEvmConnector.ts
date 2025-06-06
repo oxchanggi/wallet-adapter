@@ -32,6 +32,10 @@ export class RabbyEvmConnector extends EvmConnector {
     }
     return false;
   }
+
+  get installLink(): string {
+    return 'https://rabby.io/';
+  }
 }
 
 declare global {

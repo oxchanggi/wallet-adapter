@@ -11,16 +11,22 @@ export class SolanaWalletClient {
     return this._adapter.signTransaction(transaction);
   }
 
-  sendTransaction(transaction: Transaction | VersionedTransaction, connection: Connection, options?: SendTransactionOptions): Promise<TransactionSignature> {
+  sendTransaction(
+    transaction: Transaction | VersionedTransaction,
+    connection: Connection,
+    options?: SendTransactionOptions
+  ): Promise<TransactionSignature> {
     return this._adapter.sendTransaction(transaction, connection, options);
   }
 
-  signAllTransactions(transactions: (Transaction | VersionedTransaction)[]): Promise<(Transaction | VersionedTransaction)[]> {
+  signAllTransactions(
+    transactions: (Transaction | VersionedTransaction)[]
+  ): Promise<(Transaction | VersionedTransaction)[]> {
     console.log('signAllTransactions', transactions);
-    return this._adapter.signAllTransactions(transactions)
+    return this._adapter.signAllTransactions(transactions);
   }
 
   signMessage(message: Uint8Array): Promise<Uint8Array> {
-    return this._adapter.signMessage(message)
+    return this._adapter.signMessage(message);
   }
 }

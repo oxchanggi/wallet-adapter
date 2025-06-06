@@ -2,14 +2,14 @@ import { ChainType, useWalletConnectors } from '@/phoenix-wallet';
 import { useWallet } from '@/phoenix-wallet/hooks/useWallet';
 import { EvmTransaction } from '@/phoenix-wallet/wallets/EvmWallet';
 import { SolanaTransaction } from '@/phoenix-wallet/wallets/SolanaWallet';
-import { 
-  Connection, 
-  PublicKey, 
-  SystemProgram, 
-  Transaction, 
-  VersionedTransaction, 
+import {
+  Connection,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+  VersionedTransaction,
   TransactionMessage,
-  MessageV0
+  MessageV0,
 } from '@solana/web3.js';
 import React, { useState } from 'react';
 import { ConnectorItem } from './ConnectorItem';
@@ -64,9 +64,9 @@ export const SimpleWalletConnect: React.FC = () => {
 
   const createSolanaTransaction = async (): Promise<SolanaTransaction> => {
     if (!address) {
-      throw new Error("Wallet address is not available");
+      throw new Error('Wallet address is not available');
     }
-    
+
     const fromPublicKey = new PublicKey(address);
     const toPublicKey = new PublicKey(transactionData.to);
     const valueInLamports = Math.floor(parseFloat(transactionData.value) * 1000000000); // Convert SOL to lamports
@@ -80,8 +80,7 @@ export const SimpleWalletConnect: React.FC = () => {
         toPubkey: toPublicKey,
         lamports: valueInLamports,
       });
-      
-    
+
       // The actual transaction message construction would require a real connection
       // This is a simplified example
       const messageV0 = new TransactionMessage({
@@ -89,7 +88,7 @@ export const SimpleWalletConnect: React.FC = () => {
         recentBlockhash: recentBlockhash.blockhash, // This would be fetched from a real connection
         instructions: [instruction],
       }).compileToV0Message();
-      
+
       return new VersionedTransaction(messageV0);
     } else {
       // Create a legacy transaction
@@ -104,7 +103,7 @@ export const SimpleWalletConnect: React.FC = () => {
       transaction.feePayer = fromPublicKey;
       transaction.recentBlockhash = recentBlockhash.blockhash;
       transaction.lastValidBlockHeight = recentBlockhash.lastValidBlockHeight;
-      
+
       return transaction;
     }
   };
@@ -114,7 +113,7 @@ export const SimpleWalletConnect: React.FC = () => {
 
     try {
       setOperationResult({ type: 'loading', data: 'Signing transaction...' });
-      
+
       // Handle different wallet types
       if (selectedConnectorId.includes('solana')) {
         const transaction = await createSolanaTransaction();
@@ -152,11 +151,11 @@ export const SimpleWalletConnect: React.FC = () => {
 
     try {
       setOperationResult({ type: 'loading', data: 'Signing multiple transactions...' });
-      
+
       // Create multiple Solana transactions
       const transaction1 = await createSolanaTransaction();
       const transaction2 = await createSolanaTransaction();
-      
+
       const signedTxs = await wallet.signAllTransactions([transaction1, transaction2]);
       setOperationResult({
         type: 'success',
@@ -176,7 +175,7 @@ export const SimpleWalletConnect: React.FC = () => {
 
     try {
       setOperationResult({ type: 'loading', data: 'Sending transaction...' });
-      
+
       if (selectedConnectorId.includes('solana')) {
         const transaction = await createSolanaTransaction();
         const txHash = await wallet.sendTransaction(transaction);
@@ -300,7 +299,7 @@ export const SimpleWalletConnect: React.FC = () => {
                   className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-black focus:border-black focus:outline-none transition placeholder-gray-400 text-black"
                   value={transactionData.to}
                   onChange={(e) => setTransactionData((prev) => ({ ...prev, to: e.target.value }))}
-                  placeholder={isSolana ? "5YNmS1R9nNSCDzb5a7mMJ1dwK9uHeAAF4CerVnwgX5r" : "0xabc...def"}
+                  placeholder={isSolana ? '5YNmS1R9nNSCDzb5a7mMJ1dwK9uHeAAF4CerVnwgX5r' : '0xabc...def'}
                 />
               </div>
               <div>
@@ -311,7 +310,7 @@ export const SimpleWalletConnect: React.FC = () => {
                   className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-black focus:border-black focus:outline-none transition placeholder-gray-400 text-black"
                   value={transactionData.value}
                   onChange={(e) => setTransactionData((prev) => ({ ...prev, value: e.target.value }))}
-                  placeholder={isSolana ? "0.01" : "1000000000000000"}
+                  placeholder={isSolana ? '0.01' : '1000000000000000'}
                 />
               </div>
               {!isSolana && (
@@ -352,7 +351,9 @@ export const SimpleWalletConnect: React.FC = () => {
           {isSolana && (
             <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-200">
               <h3 className="text-lg font-semibold mb-3 text-black">Sign All Transactions (Solana)</h3>
-              <p className="text-sm text-gray-600 mb-3">Sign multiple transactions at once using the same transaction data</p>
+              <p className="text-sm text-gray-600 mb-3">
+                Sign multiple transactions at once using the same transaction data
+              </p>
               <button
                 className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors shadow-sm"
                 onClick={handleSignAllTransactions}
@@ -384,7 +385,11 @@ export const SimpleWalletConnect: React.FC = () => {
                 value={rawTransaction}
                 onChange={(e) => setRawTransaction(e.target.value)}
                 rows={2}
-                placeholder={isSolana ? "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAEDyf2cSYf0apvP4BeGu/HH2cIrF+7QFtYEEvH4Q9t+mQAAAAAAAAAAqcdptXNWyMB3SgeuXbXgQvdJMr2EGqCbTjLrLfP8JEUBAgIAAQwCAAAAKgAAAAAAAAA=" : "0x89205a3a3b2a136b355f67371d9153afa4050e13c8458cd50a1e40783d37d39b..."}
+                placeholder={
+                  isSolana
+                    ? 'AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAEDyf2cSYf0apvP4BeGu/HH2cIrF+7QFtYEEvH4Q9t+mQAAAAAAAAAAqcdptXNWyMB3SgeuXbXgQvdJMr2EGqCbTjLrLfP8JEUBAgIAAQwCAAAAKgAAAAAAAAA='
+                    : '0x89205a3a3b2a136b355f67371d9153afa4050e13c8458cd50a1e40783d37d39b...'
+                }
               />
             </div>
             <button

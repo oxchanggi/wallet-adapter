@@ -8,7 +8,6 @@ import { SolanaWalletClient } from '../connectors/solana/SolanaWalletClient';
 export type SolanaTransaction = Transaction | VersionedTransaction;
 
 export class SolanaWallet extends Wallet<SolanaTransaction, SolanaChain, SolanaConnector, SolanaWalletClient> {
-
   constructor(_address: string, chain: SolanaChain, connector: SolanaConnector, walletClient: SolanaWalletClient) {
     super(_address, chain, connector, walletClient);
   }
@@ -25,7 +24,7 @@ export class SolanaWallet extends Wallet<SolanaTransaction, SolanaChain, SolanaC
 
     if ('signatures' in transaction && !('message' in transaction)) {
       signedTransaction = await this.walletClient.signTransaction(transaction);
-      
+
       return Buffer.from(signedTransaction.serialize()).toString('base64');
     } else if ('message' in transaction) {
       signedTransaction = await this.walletClient.signTransaction(transaction);
@@ -44,7 +43,7 @@ export class SolanaWallet extends Wallet<SolanaTransaction, SolanaChain, SolanaC
 
   async signAllTransactions(transactions: SolanaTransaction[]): Promise<string[]> {
     const signedTransactions = await this.walletClient.signAllTransactions(transactions);
-    return signedTransactions.map(transaction => Buffer.from(transaction.serialize()).toString('base64'));
+    return signedTransactions.map((transaction) => Buffer.from(transaction.serialize()).toString('base64'));
   }
 
   get address(): string {

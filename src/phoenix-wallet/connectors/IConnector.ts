@@ -18,10 +18,13 @@ export interface IConnector {
   registerConnectorCallback(callback: IConnectorCallback): void;
   unregisterConnectorCallback(callback: IConnectorCallback): void;
   createWalletClient(chain: IChain<any>): any;
+  createPublicClient(chain: IChain<any>): any;
   isInstalled(): Promise<boolean>;
   isConnected(): Promise<boolean>;
   get chainType(): ChainType;
+  get installLink(): string;
   switchChainId(chainId: string): Promise<void>;
+  addChain(chain: IChain<any>): Promise<void>;
 }
 
 export abstract class Connector implements IConnector {
@@ -42,12 +45,14 @@ export abstract class Connector implements IConnector {
   abstract getConnectedAddresses(): Promise<string[]>;
   abstract getChainId(): Promise<string>;
   abstract get chainType(): ChainType;
+  abstract get installLink(): string;
   abstract setupEventListeners(): Promise<void>;
   abstract isInstalled(): Promise<boolean>;
   abstract isConnected(): Promise<boolean>;
   abstract createWalletClient(chain: IChain<any>): any;
+  abstract createPublicClient(chain: IChain<any>): any;
   abstract switchChainId(chainId: string): Promise<void>;
-
+  abstract addChain(chain: IChain<any>): Promise<void>;
   async handleEventConnect(address: string, chainId?: string): Promise<void> {
     this.callbackManager.notifyConnect(address, chainId);
   }

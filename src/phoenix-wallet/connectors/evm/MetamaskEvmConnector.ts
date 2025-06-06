@@ -45,4 +45,8 @@ export class MetamaskEvmConnector extends EvmConnector {
   async disconnect(): Promise<void> {
     await this.sdk?.terminate();
   }
+
+  get installLink(): string {
+    return 'https://metamask.io/download/';
+  }
 }

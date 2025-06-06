@@ -31,6 +31,10 @@ export class CoinbaseEvmConnector extends EvmConnector {
     }
     return false;
   }
+
+  get installLink(): string {
+    return 'https://www.coinbase.com/wallet';
+  }
 }
 
 declare global {
