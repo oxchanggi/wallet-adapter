@@ -18,6 +18,10 @@ export class BinanceEvmConnector extends EvmConnector {
     return this.binanceProvider;
   }
 
+  get installLink(): string {
+    return 'https://www.binance.com';
+  }
+
   async init(): Promise<void> {
     if (this.isInitialized) {
       return;

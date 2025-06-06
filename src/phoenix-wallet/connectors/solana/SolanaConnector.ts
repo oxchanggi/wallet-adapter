@@ -3,16 +3,17 @@ import { Connector } from '../IConnector';
 import { ChainType, IChain } from '../../chains/Chain';
 import { BaseMessageSignerWalletAdapter, WalletReadyState } from '@solana/wallet-adapter-base';
 import { SolanaWalletClient } from './SolanaWalletClient';
+import { Connection } from '@solana/web3.js';
 
 function convertWalletNameToId(name: string) {
-  return (name+"_solana").toLowerCase().replace(' ', '_');
+  return (name + '_solana').toLowerCase().replace(' ', '_');
 }
 
 export enum SolanaCluster {
-  MAINNET = "mainnet-beta",
-  DEVNET = "devnet",
-  TESTNET = "testnet",
-  LOCALNET = "localnet"
+  MAINNET = 'mainnet-beta',
+  DEVNET = 'devnet',
+  TESTNET = 'testnet',
+  LOCALNET = 'localnet',
 }
 
 export class SolanaConnector extends Connector {
@@ -20,7 +21,11 @@ export class SolanaConnector extends Connector {
   protected isInitialized: boolean = false;
   adapter: BaseMessageSignerWalletAdapter;
   cluster: SolanaCluster;
-  constructor(dappMetadata: DappMetadata, adapter: BaseMessageSignerWalletAdapter, defaultCluster: SolanaCluster = SolanaCluster.MAINNET) {
+  constructor(
+    dappMetadata: DappMetadata,
+    adapter: BaseMessageSignerWalletAdapter,
+    defaultCluster: SolanaCluster = SolanaCluster.MAINNET
+  ) {
     super(convertWalletNameToId(adapter.name), adapter.name, adapter.icon, dappMetadata);
     this.adapter = adapter;
     this.cluster = defaultCluster;
@@ -38,7 +43,7 @@ export class SolanaConnector extends Connector {
     this.isInitialized = true;
 
     this.setupEventListeners();
-    
+
     // Check if we have a stored connection
     this.checkStoredConnection();
   }
@@ -61,9 +66,9 @@ export class SolanaConnector extends Connector {
       // await this.disconnect();
       throw error;
     }
-    
+
     this.activeAddress = this.adapter.publicKey?.toBase58() ?? '';
-    
+
     // Store connection status in localStorage
     if (typeof localStorage !== 'undefined') {
       if (this.storageConnectionStatusKey) {
@@ -73,7 +78,7 @@ export class SolanaConnector extends Connector {
         localStorage.setItem(this.storageAddressKey, this.activeAddress);
       }
     }
-    
+
     return {
       address: this.activeAddress,
       chainId: this.cluster,
@@ -82,13 +87,13 @@ export class SolanaConnector extends Connector {
 
   async disconnect(): Promise<void> {
     await this.init();
-    
+
     // Store the current address before clearing it
     const currentAddress = this.activeAddress;
-    
+
     // Clear the active address
     this.activeAddress = undefined;
-    
+
     // Remove stored connection info
     if (typeof localStorage !== 'undefined') {
       if (this.storageConnectionStatusKey) {
@@ -98,9 +103,9 @@ export class SolanaConnector extends Connector {
         localStorage.removeItem(this.storageAddressKey);
       }
     }
-    
+
     await this.adapter.disconnect();
-    
+
     // Emit disconnect event if we had an active address
     if (currentAddress) {
       this.handleEventDisconnect(currentAddress);
@@ -113,7 +118,7 @@ export class SolanaConnector extends Connector {
   }
 
   private get _chainId(): string {
-    return 'solana_'+this.cluster.toLowerCase().replace('-', '_')
+    return 'solana_' + this.cluster.toLowerCase().replace('-', '_');
   }
 
   async getChainId(): Promise<string> {
@@ -123,7 +128,7 @@ export class SolanaConnector extends Connector {
   async setupEventListeners(): Promise<void> {
     if (!(await this.isInstalled())) return;
 
-    this.adapter.on('connect',() => {
+    this.adapter.on('connect', () => {
       console.log('Solana connector connect event', this.adapter.publicKey?.toBase58());
       if (this.activeAddress != this.adapter.publicKey?.toBase58() && this.adapter.publicKey?.toBase58()) {
         this.activeAddress = this.adapter.publicKey?.toBase58();
@@ -143,7 +148,7 @@ export class SolanaConnector extends Connector {
   async isConnected(): Promise<boolean> {
     try {
       await this.init();
-      
+
       if (this.storageConnectionStatusKey) {
         const storedStatus = localStorage.getItem(this.storageConnectionStatusKey);
         if (!storedStatus) {
@@ -169,9 +174,24 @@ export class SolanaConnector extends Connector {
     return new SolanaWalletClient(this.adapter);
   }
 
+  createPublicClient(chain: IChain<any>) {
+    return new Connection(chain.publicRpcUrl);
+  }
+
+  get installLink(): string {
+    if (!this.adapter) {
+      throw new Error('Solana adapter not found');
+    }
+    return this.adapter.url;
+  }
+
   async switchChainId(chainId: SolanaCluster): Promise<void> {
     this.cluster = chainId;
     this.handleEventChainChanged(chainId);
+  }
+
+  async addChain(chain: IChain<any>): Promise<void> {
+    throw new Error('Method not supported for Solana.');
   }
 
   protected get storageConnectionStatusKey(): string | null {
@@ -191,7 +211,7 @@ export class SolanaConnector extends Connector {
           const storedAddress = localStorage.getItem(this.storageAddressKey);
           if (storedAddress) {
             this.activeAddress = storedAddress;
-            this.handleEventConnect(this.activeAddress,  this._chainId);
+            this.handleEventConnect(this.activeAddress, this._chainId);
           } else {
             localStorage.removeItem(this.storageConnectionStatusKey);
           }

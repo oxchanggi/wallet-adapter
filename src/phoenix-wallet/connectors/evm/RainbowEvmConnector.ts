@@ -29,6 +29,10 @@ export class RainbowEvmConnector extends EvmConnector {
     }
     return false;
   }
+
+  get installLink(): string {
+    return 'https://rainbow.me/';
+  }
 }
 
 declare global {

@@ -368,7 +368,12 @@ export function useWallet(connectorId: string): WalletState {
       }
 
       const solanaChain = new SolanaChain(chain.name, chain as IChain<Connection>);
-      return new SolanaWallet(address, solanaChain, connector as SolanaConnector, connector.createWalletClient(solanaChain));
+      return new SolanaWallet(
+        address,
+        solanaChain,
+        connector as SolanaConnector,
+        connector.createWalletClient(solanaChain)
+      );
     }
     return null;
   }, [status, address, chainId, connector, chainConfigs]);

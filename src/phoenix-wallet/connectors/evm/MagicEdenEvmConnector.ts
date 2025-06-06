@@ -29,6 +29,10 @@ export class MagicEdenEvmConnector extends EvmConnector {
     }
     return false;
   }
+
+  get installLink(): string {
+    return 'https://docs-wallet.magiceden.io/';
+  }
 }
 
 declare global {

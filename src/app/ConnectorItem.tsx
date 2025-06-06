@@ -1,6 +1,10 @@
 import { ConnectorStatus } from '@/phoenix-wallet/connectors/types';
 import { useWallet } from '@/phoenix-wallet/hooks/useWallet';
 import React, { useState } from 'react';
+import { EvmChain } from '@/phoenix-wallet/chains/EvmChain';
+import { ChainType, IChainConfig, IChain } from '@/phoenix-wallet/chains/Chain';
+import { JsonRpcProvider } from 'ethers';
+import { useWalletConnectors } from '@/phoenix-wallet/contexts/WalletContext';
 
 interface ConnectorItemProps {
   connectorId: string;
@@ -19,9 +23,16 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({ connectorId }) => 
     chainId,
     connect,
     disconnect,
+    switchChain,
+    wallet,
   } = useWallet(connectorId);
 
+  const { chainConfigs } = useWalletConnectors();
+
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [isAddingChain, setIsAddingChain] = useState<boolean>(false);
+  const [addChainError, setAddChainError] = useState<string | null>(null);
+  const [selectedChainId, setSelectedChainId] = useState<string>('');
 
   if (!connector) {
     return null;
@@ -83,22 +94,44 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({ connectorId }) => 
   };
 
   const handleInstall = () => {
-    switch (connector.id) {
-      case 'metamaskevm':
-        window.open('https://metamask.io/download/', '_blank');
-        break;
-      case 'phantomevm':
-        window.open('https://phantom.app/download', '_blank');
-        break;
-      case 'coinbaseevm':
-        window.open('https://www.coinbase.com/wallet/downloads', '_blank');
-        break;
-      case 'rabbyevm':
-        window.open('https://rabby.io/', '_blank');
-        break;
-      case 'magicedenevm':
-      default:
-        window.open('https://metamask.io/download/', '_blank');
+    window.open(connector.installLink, '_blank');
+  };
+
+  const handleAddChain = async () => {
+    if (!connector || connector.chainType !== ChainType.EVM || !selectedChainId) {
+      return;
+    }
+
+    setIsAddingChain(true);
+    setAddChainError(null);
+
+    try {
+      // Find the selected chain from chainConfigs
+      const chainToAdd = chainConfigs.find((chain) => chain.id === selectedChainId);
+
+      if (!chainToAdd) {
+        throw new Error('Selected chain not found');
+      }
+
+      // Create the EvmChain instance
+      const provider = new JsonRpcProvider(chainToAdd.privateRpcUrl);
+      const chainWithProvider = {
+        ...chainToAdd,
+        chainName: chainToAdd.name,
+        provider: provider,
+      };
+
+      const evmChain = new EvmChain(chainToAdd.name, chainWithProvider as any);
+      await connector.addChain(evmChain);
+      console.log(`Successfully added chain: ${chainToAdd.name}`);
+
+      // Reset the selection after successful addition
+      setSelectedChainId('');
+    } catch (error: any) {
+      console.error(`Failed to add chain:`, error);
+      setAddChainError(error.message || 'Failed to add chain');
+    } finally {
+      setIsAddingChain(false);
     }
   };
 
@@ -175,12 +208,79 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({ connectorId }) => 
         )}
 
         {isConnected && (
-          <button
-            className="w-full py-2 px-4 bg-red-500 hover:bg-red-600 text-white rounded transition-colors"
-            onClick={handleDisconnect}
-          >
-            Disconnect
-          </button>
+          <div className="space-y-2">
+            <button
+              className="w-full py-2 px-4 bg-red-500 hover:bg-red-600 text-white rounded transition-colors"
+              onClick={handleDisconnect}
+            >
+              Disconnect
+            </button>
+
+            {connector.chainType === ChainType.EVM && (
+              <>
+                <div className="mt-3">
+                  <label
+                    htmlFor={`chain-select-${connectorId}`}
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Select chain to add
+                  </label>
+                  <select
+                    id={`chain-select-${connectorId}`}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    value={selectedChainId}
+                    onChange={(e) => setSelectedChainId(e.target.value)}
+                    disabled={isAddingChain}
+                  >
+                    <option value="">Select a chain</option>
+                    {chainConfigs
+                      .filter((chain) => chain.chainType === ChainType.EVM && chain.id !== chainId)
+                      .map((chain) => (
+                        <option key={chain.id} value={chain.id}>
+                          {chain.name} ({chain.id})
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                <button
+                  className="w-full py-2 px-4 bg-green-500 hover:bg-green-600 text-white rounded transition-colors"
+                  onClick={handleAddChain}
+                  disabled={isAddingChain || !selectedChainId}
+                >
+                  {isAddingChain ? (
+                    <span className="inline-flex items-center">
+                      <svg
+                        className="animate-spin h-4 w-4 text-white inline-block mr-2"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Adding Chain...
+                    </span>
+                  ) : (
+                    'Add Selected Chain'
+                  )}
+                </button>
+              </>
+            )}
+
+            {addChainError && <p className="text-red-500 text-sm mt-1">{addChainError}</p>}
+          </div>
         )}
 
         {hasError && (
