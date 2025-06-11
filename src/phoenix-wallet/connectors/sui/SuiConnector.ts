@@ -161,25 +161,6 @@ export abstract class SuiConnector extends Connector {
     }
   }
 
-  // Sui-specific helper methods
-  protected async getNetworkFromChainId(chainId: string): Promise<'mainnet' | 'testnet' | 'devnet'> {
-    const networkPart = chainId.toLowerCase().split(':')[1];
-  protected async getNetworkFromChainId(chainId: string): Promise<'mainnet' | 'testnet' | 'devnet'> {
-    const networkPart = chainId.toLowerCase().split(':')[1];
-    switch (networkPart) {
-      case 'mainnet':
-      case 'testnet':
-      case 'devnet':
-      case 'mainnet':
-      case 'testnet':
-      case 'devnet':
-        return networkPart;
-      default:
-        return 'devnet'; // Default fallback
-        return 'devnet'; // Default fallback
-    }
-  }
-
   // Get current Sui client instance
   protected getSuiClient(): SuiClient | null {
     return this.suiClient;

@@ -62,7 +62,6 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
       }
 
       const signedMessage = await this.suiProvider.signMessage(new TextEncoder().encode(message), this._address);
-      const signedMessage = await this.suiProvider.signMessage(new TextEncoder().encode(message), this._address);
 
       return signedMessage.signature;
     } catch (error) {
@@ -183,7 +182,6 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
 
   // Get all coin balances
   async getAllBalances(): Promise<Array<{ coinType: string; balance: string }>> {
-  async getAllBalances(): Promise<Array<{ coinType: string; balance: string }>> {
     try {
       const balances = await this.chain.provider.getAllBalances({
         owner: this._address,
@@ -283,12 +281,9 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
 
       if (dryRunResult.effects.status.status === 'failure') {
         throw new Error(`Transaction would fail: ${dryRunResult.effects.status.error}`);
-      if (dryRunResult.effects.status.status === 'failure') {
-        throw new Error(`Transaction would fail: ${dryRunResult.effects.status.error}`);
       }
 
       const gasUsed = dryRunResult.effects.gasUsed;
-      const totalGas = BigInt(gasUsed.computationCost) + BigInt(gasUsed.storageCost) - BigInt(gasUsed.storageRebate);
       const totalGas = BigInt(gasUsed.computationCost) + BigInt(gasUsed.storageCost) - BigInt(gasUsed.storageRebate);
 
       return {
