@@ -1,4 +1,4 @@
-import { Chain, IChain } from '../chains/Chain';
+import { Chain } from '../chains/Chain';
 import { IConnector } from '../connectors/IConnector';
 
 export interface IWallet<T, K extends Chain<any>, Q extends IConnector, M> {
@@ -10,6 +10,7 @@ export interface IWallet<T, K extends Chain<any>, Q extends IConnector, M> {
   sendTransaction(transaction: T): Promise<string>;
   sendRawTransaction(transaction: string): Promise<string>;
   signAllTransactions(transactions: T[]): Promise<string[]>;
+  getBalance(): Promise<{ amount: string; uiAmount: string; decimals: number; symbol: string; name: string }>;
   get address(): string;
   get walletClient(): M;
 }
@@ -30,6 +31,7 @@ export abstract class Wallet<T, K extends Chain<any>, Q extends IConnector, M> i
   abstract sendTransaction(transaction: T): Promise<string>;
   abstract sendRawTransaction(transaction: string): Promise<string>;
   abstract signAllTransactions(transactions: T[]): Promise<string[]>;
+  abstract getBalance(): Promise<{ amount: string; uiAmount: string; decimals: number; symbol: string; name: string }>;
   abstract get address(): string;
   get walletClient(): M {
     return this._walletClient;

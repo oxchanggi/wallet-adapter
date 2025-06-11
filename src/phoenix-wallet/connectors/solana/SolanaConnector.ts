@@ -1,4 +1,4 @@
-import { ConnectorConfig, ConnectorInterface, ConnectorState, DappMetadata } from '../types';
+import { DappMetadata } from '../types';
 import { Connector } from '../IConnector';
 import { ChainType, IChain } from '../../chains/Chain';
 import { BaseMessageSignerWalletAdapter, WalletReadyState } from '@solana/wallet-adapter-base';

@@ -32,12 +32,19 @@ export * from "./connectors/sui/SuiConnector";
 export * from "./connectors/sui/SuietConnector";
 export * from "./connectors/sui/SlushConnector";
 export * from "./connectors/sui/PhantomSuiConnector";
+export * from './connectors/evm/RabbyEvmConnector';
+export * from './connectors/evm/CoinbaseEvmConnector';
 export * from './connectors/solana/SolanaConnector';
 export * from './connectors/types';
 export * from './connectors/index';
 
 // Types
 export * from "./types";
+
+// Contracts
+export * from './contracts/IContract';
+export * from './contracts/EvmContract';
+export * from './contracts/SolanaContract';
 
 // Contexts
 export { useWalletConnectors, WalletProvider } from './contexts/WalletContext';
