@@ -30,6 +30,10 @@ export class TrustWalletEvmConnector extends EvmConnector {
     }
     return false;
   }
+
+  get installLink(): string {
+    return 'https://trustwallet.com/';
+  }
 }
 
 declare global {

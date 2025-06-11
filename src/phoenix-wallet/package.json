@@ -1,11 +1,19 @@
 {
-  "name": "@phoenix-wallet/wallet",
+  "name": "@phoenix-wallet/wallet-adapter",
   "version": "0.1.1",
+  "description": "A React library for connecting to multiple blockchain wallets with a unified interface",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build",
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@binance/w3w-ethereum-provider": "^1.1.8-alpha.0",
@@ -23,5 +31,18 @@
   },
   "peerDependencies": {
     "react": ">=17.0.0"
+  },
+  "keywords": [
+    "wallet",
+    "blockchain",
+    "ethereum",
+    "solana",
+    "web3",
+    "react"
+  ],
+  "author": "",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
   }
 }

@@ -1,4 +1,4 @@
-import { createWalletClient, custom } from 'viem';
+import { createPublicClient, createWalletClient, custom, http } from 'viem';
 import { ChainType } from '../../chains/Chain';
 import { EvmChain } from '../../chains/EvmChain';
 import { Connector } from '../IConnector';
@@ -125,9 +125,37 @@ export abstract class EvmConnector extends Connector {
         id: parseInt(this.activeChainId!),
         name: chain.chainName,
         nativeCurrency: {
-          name: chain.chainName,
-          symbol: chain.chainName,
-          decimals: 18,
+          name: chain.nativeCurrency.name,
+          symbol: chain.nativeCurrency.symbol,
+          decimals: chain.nativeCurrency.decimals,
+        },
+        rpcUrls: {
+          default: {
+            http: [chain.publicRpcUrl],
+          },
+        },
+      },
+      transport: custom(this.provider),
+    });
+
+    return client;
+  }
+
+  createPublicClient(chain: EvmChain) {
+    const client = createPublicClient({
+      chain: {
+        blockExplorers: {
+          default: {
+            name: chain.chainName,
+            url: chain.explorerUrl,
+          },
+        },
+        id: parseInt(this.activeChainId!),
+        name: chain.chainName,
+        nativeCurrency: {
+          name: chain.nativeCurrency.name,
+          symbol: chain.nativeCurrency.symbol,
+          decimals: chain.nativeCurrency.decimals,
         },
         rpcUrls: {
           default: {
@@ -135,9 +163,8 @@ export abstract class EvmConnector extends Connector {
           },
         },
       },
-      transport: custom(this.provider),
+      transport: http(chain.privateRpcUrl),
     });
-
     return client;
   }
 
@@ -227,6 +254,25 @@ export abstract class EvmConnector extends Connector {
 
   async switchChainId(chainId: string): Promise<void> {
     await this.provider?.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: chainId }] });
+  }
+
+  async addChain(chain: EvmChain): Promise<void> {
+    return await this.provider?.request({
+      method: 'wallet_addEthereumChain',
+      params: [
+        {
+          chainId: `0x${chain.chainId.toString(16)}`,
+          chainName: chain.chainName,
+          nativeCurrency: {
+            name: chain.nativeCurrency.name,
+            symbol: chain.nativeCurrency.symbol,
+            decimals: chain.nativeCurrency.decimals,
+          },
+          rpcUrls: [chain.publicRpcUrl],
+          blockExplorerUrls: [chain.explorerUrl],
+        },
+      ],
+    });
   }
 }
 

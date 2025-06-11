@@ -29,4 +29,8 @@ export class PhantomEvmConnector extends EvmConnector {
     }
     return false;
   }
+
+  get installLink(): string {
+    return 'https://phantom.app/';
+  }
 }

@@ -14,16 +14,21 @@ export * from './connectors/evm/EvmConnector';
 export * from './connectors/evm/MetamaskEvmConnector';
 export * from './connectors/evm/PhantomEvmConnector';
 export * from './connectors/evm/MagicEdenEvmConnector';
-export * from './connectors/solana/SolanaConnector';
 export * from './connectors/evm/RainbowEvmConnector';
 export * from './connectors/evm/OkxEvmConnector';
 export * from './connectors/evm/TrustWalletEvmConnector';
 export * from './connectors/evm/BinanceEvmConnector';
 export * from './connectors/evm/EvmConnector';
-export * from './connectors/evm/BitgetEvmConnector';
+export * from './connectors/evm/RabbyEvmConnector';
+export * from './connectors/evm/CoinbaseEvmConnector';
 export * from './connectors/solana/SolanaConnector';
 export * from './connectors/types';
 export * from './connectors/index';
+
+// Contracts
+export * from './contracts/IContract';
+export * from './contracts/EvmContract';
+export * from './contracts/SolanaContract';
 
 // Contexts
 export { useWalletConnectors, WalletProvider } from './contexts/WalletContext';
