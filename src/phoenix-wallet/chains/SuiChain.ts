@@ -28,39 +28,4 @@ export class SuiChain extends Chain<SuiClient> {
   get provider(): SuiClient {
     return this._provider;
   }
-
-  // Sui-specific helper methods
-  get networkType(): string {
-    if (this.id.includes("mainnet")) return "mainnet";
-    if (this.id.includes("testnet")) return "testnet";
-    if (this.id.includes("devnet")) return "devnet";
-    return "unknown";
-  }
-
-  get chainIdentifier(): string {
-    return `sui:${this.networkType}`;
-  }
-
-  // Sui-specific utility methods
-  isMainnet(): boolean {
-    return this.networkType === "mainnet";
-  }
-
-  isTestnet(): boolean {
-    return this.networkType === "testnet";
-  }
-
-  isDevnet(): boolean {
-    return this.networkType === "devnet";
-  }
-
-  // Get transaction explorer URL
-  getTransactionUrl(txHash: string): string {
-    return `${this.explorerUrl}/tx/${txHash}`;
-  }
-
-  // Get address explorer URL
-  getAddressUrl(address: string): string {
-    return `${this.explorerUrl}/address/${address}`;
-  }
 }

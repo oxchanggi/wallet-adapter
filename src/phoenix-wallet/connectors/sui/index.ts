@@ -2,7 +2,6 @@
 export * from "./SuiConnector";
 
 // Concrete Sui Connector Implementations
-export * from './SuietConnector';
 export * from "./PhantomSuiConnector";
 
 // Re-export Sui-specific types
