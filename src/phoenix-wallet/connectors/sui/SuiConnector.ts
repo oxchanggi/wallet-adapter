@@ -42,7 +42,6 @@ export abstract class SuiConnector extends Connector {
   protected activeAddress: string | undefined = undefined;
   protected activeChainId: string | undefined = undefined;
   protected provider: SuiProvider | null = null;
-  protected suiClient: SuiClient | null = null;
   protected isInitialized: boolean = false;
 
   constructor(id: string, config: ConnectorConfig, dappMetadata: DappMetadata) {
@@ -91,47 +90,13 @@ export abstract class SuiConnector extends Connector {
     if (this.activeChainId !== chainId) {
       this.activeChainId = chainId;
       // Update SuiClient with new network
-      if (this.suiClient && this.activeChainId) {
-        this.suiClient = this.createSuiClientForNetwork(this.activeChainId);
-      }
     }
     super.handleEventChainChanged(chainId);
-  }
-
-  // Create SuiClient for specific network
-  protected createSuiClientForNetwork(chainId: string): SuiClient {
-    let rpcUrl: string;
-
-    // Map Sui chain identifiers to RPC URLs
-    switch (chainId.toLowerCase()) {
-      case 'sui:mainnet':
-        rpcUrl = 'https://fullnode.mainnet.sui.io:443';
-      case 'sui:mainnet':
-        rpcUrl = 'https://fullnode.mainnet.sui.io:443';
-        break;
-      case 'sui:testnet':
-        rpcUrl = 'https://fullnode.testnet.sui.io:443';
-      case 'sui:testnet':
-        rpcUrl = 'https://fullnode.testnet.sui.io:443';
-        break;
-      case 'sui:devnet':
-        rpcUrl = 'https://fullnode.devnet.sui.io:443';
-      case 'sui:devnet':
-        rpcUrl = 'https://fullnode.devnet.sui.io:443';
-        break;
-      default:
-        // Default to devnet for unknown chains
-        rpcUrl = 'https://fullnode.devnet.sui.io:443';
-        rpcUrl = 'https://fullnode.devnet.sui.io:443';
-    }
-
-    return new SuiClient({ url: rpcUrl });
   }
 
   // Create wallet client for Sui operations (similar to EvmConnector.createWalletClient)
   createWalletClient(chain: SuiChain): SuiWalletClient {
     if (!this.provider) {
-      throw new Error('Sui provider not available');
       throw new Error('Sui provider not available');
     }
 
@@ -159,11 +124,6 @@ export abstract class SuiConnector extends Connector {
         localStorage.setItem(this.storageAddressKey, this.activeAddress);
       }
     }
-  }
-
-  // Get current Sui client instance
-  protected getSuiClient(): SuiClient | null {
-    return this.suiClient;
   }
 
   // Get current provider (public getter for wallet access)
