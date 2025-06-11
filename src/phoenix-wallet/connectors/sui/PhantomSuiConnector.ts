@@ -69,10 +69,7 @@ export class PhantomSuiConnector extends SuiConnector {
       await this.setupEventListeners();
 
       // Request connection
-      console.log('Connecting to Phantom Sui wallet');
-      console.log(this.suiProvider);
       const connectResult = await this.suiProvider.requestAccount();
-      console.log('Connect result:', connectResult);
 
       // Handle both Phantom Sui and standard response structures
       let address: string;
@@ -148,8 +145,7 @@ export class PhantomSuiConnector extends SuiConnector {
         throw new Error('Phantom Sui provider not available');
       }
 
-      const chain = await this.suiProvider.getChain();
-      return chain || 'sui:mainnet'; // Phantom typically defaults to mainnet
+      return this.activeChainId || 'sui:mainnet'; // Phantom typically defaults to mainnet
     } catch (error) {
       console.error('Error getting chain ID:', error);
       // Return mainnet as default for Phantom

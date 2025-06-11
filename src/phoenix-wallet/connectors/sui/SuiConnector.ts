@@ -25,7 +25,7 @@ export interface SuiProvider {
   getChain(): Promise<string>;
 
   // Transaction methods
-  signAndExecuteTransactionBlock(input: SuiSignAndExecuteTransactionBlockInput): Promise<SuiTransactionResponse>;
+  signAndExecuteTransaction(input: SuiSignAndExecuteTransactionBlockInput): Promise<SuiTransactionResponse>;
   signTransaction(input: SuiSignTransactionBlockInput): Promise<SuiSignedTransaction>;
   signMessage(message: Uint8Array<ArrayBufferLike>, account?: string): Promise<SuiSignedMessage>;
 

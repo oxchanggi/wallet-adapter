@@ -15,13 +15,11 @@ export class SuiWalletClient {
   }
 
   signTransaction(input: SuiSignTransactionBlockInput): Promise<SuiSignedTransaction> {
-    console.log('signTransaction', input);
     return this._provider.signTransaction(input);
   }
 
-  signAndExecuteTransactionBlock(input: SuiSignAndExecuteTransactionBlockInput): Promise<SuiTransactionResponse> {
-    console.log('signAndExecuteTransactionBlock', input);
-    return this._provider.signAndExecuteTransactionBlock(input);
+  signAndExecuteTransaction(input: SuiSignAndExecuteTransactionBlockInput): Promise<SuiTransactionResponse> {
+    return this._provider.signAndExecuteTransaction(input);
   }
 
   signMessage(message: Uint8Array, account?: string): Promise<SuiSignedMessage> {

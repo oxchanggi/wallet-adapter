@@ -3,31 +3,10 @@ import { Wallet } from './IWallet';
 import { SuiChain } from '../chains/SuiChain';
 import { SuiConnector } from '../connectors/sui/SuiConnector';
 import { SuiWalletClient } from '../connectors/sui/SuiWalletClient';
+import { SuiTransactionBlock } from '../types/sui';
 
-// Sui Transaction Interface
-export interface SuiTransaction {
-  // Transaction Block (primary transaction type)
-  transaction?: Transaction;
-
-  // Simple transfer parameters
-  to?: string;
-  amount?: string;
-  coinType?: string; // Default to SUI if not specified
-
-  // Gas configuration
-  gasBudget?: string;
-  gasPayment?: string; // Object ID of gas coin
-
-  // Additional options
-  requestType?: 'WaitForEffectsCert' | 'WaitForLocalExecution';
-  options?: {
-    showInput?: boolean;
-    showEffects?: boolean;
-    showEvents?: boolean;
-    showObjectChanges?: boolean;
-    showBalanceChanges?: boolean;
-  };
-}
+// Sui Transaction Type
+export type SuiTransaction = Transaction;
 
 export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, SuiWalletClient> {
   constructor(_address: string, chain: SuiChain, connector: SuiConnector, walletClient: SuiWalletClient) {
@@ -39,6 +18,15 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
     return this.connector.getProvider();
   }
 
+  // Convert Transaction to SuiTransactionBlock format
+  private async convertToSuiTransactionBlock(transaction: SuiTransaction): Promise<SuiTransactionBlock> {
+    // Build the transaction to get serialized format
+    const builtTransaction = await transaction.toJSON();
+
+    // Parse the built transaction to create SuiTransactionBlock
+    return builtTransaction as any;
+  }
+
   // Sign a transaction block without executing it
   async signTransaction(transaction: SuiTransaction): Promise<string> {
     try {
@@ -47,38 +35,11 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
         throw new Error('Sui provider not available');
       }
 
-      if (!transaction.amount && 'value' in transaction) {
-        transaction.amount = (transaction as any).value;
-      }
+      const transactionBlock = await this.convertToSuiTransactionBlock(transaction);
 
-      let tx: Transaction;
-
-      // Handle different transaction types
-      if (transaction.transaction) {
-        // Use provided transaction block
-        tx = transaction.transaction;
-      } else if (transaction.to && transaction.amount) {
-        // Create simple transfer transaction
-        tx = new Transaction();
-
-        // Set gas budget if provided
-        if (transaction.gasBudget) {
-          tx.setGasBudget(BigInt(transaction.gasBudget));
-        }
-
-        // Create transfer transaction
-        const [coin] = tx.splitCoins(tx.gas, [tx.pure.u64(transaction.amount)]);
-
-        tx.transferObjects([coin], tx.pure.address(transaction.to));
-      } else {
-        throw new Error('Invalid transaction: must provide either transaction or to/amount');
-      }
-
-      const _tx = await tx.toJSON();
-
-      // Sign the transaction using the provider (correct method name)
+      // Sign the transaction using the provider
       const signedTransaction = await this.suiProvider.signTransaction({
-        transaction: _tx as any,
+        transaction: transactionBlock,
         address: this._address,
         networkID: this.chain.chainIdentifier,
       });
@@ -118,34 +79,16 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
         throw new Error('Sui provider not available');
       }
 
-      let tx: Transaction;
+      const transactionBlock = await this.convertToSuiTransactionBlock(transaction);
 
-      // Handle different transaction types
-      if (transaction.transaction) {
-        tx = transaction.transaction;
-      } else if (transaction.to && transaction.amount) {
-        // Create simple transfer transaction
-        tx = new Transaction();
+      console.log('this.suiProvider', this.suiProvider);
 
-        // Set gas budget if provided
-        if (transaction.gasBudget) {
-          tx.setGasBudget(BigInt(transaction.gasBudget));
-        }
-
-        // Create transfer transaction
-        const [coin] = tx.splitCoins(tx.gas, [tx.pure.u64(transaction.amount)]);
-
-        tx.transferObjects([coin], tx.pure.address(transaction.to));
-      } else {
-        throw new Error('Invalid transaction: must provide either transaction or to/amount');
-      }
-
-      // Execute the transaction using the provider (correct method name)
-      const result = await this.suiProvider.signAndExecuteTransactionBlock({
-        transactionBlock: tx as any,
-        account: this._address,
-        chain: this.chain.chainIdentifier,
-        requestType: transaction.requestType || 'WaitForEffectsCert',
+      // Execute the transaction using the provider
+      const result = await this.suiProvider.signAndExecuteTransaction({
+        transaction: transactionBlock,
+        address: this._address,
+        networkID: this.chain.chainIdentifier,
+        requestType: 'WaitForEffectsCert',
       });
 
       return result.digest;
@@ -156,8 +99,23 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
   }
 
   // Send a pre-signed transaction
-  async sendRawTransaction(_signedTransactionBytes: string): Promise<string> {
-    throw new Error('Not implemented');
+  async sendRawTransaction(signedTransactionBytes: string): Promise<string> {
+    try {
+      if (!this.suiProvider) {
+        throw new Error('Sui provider not available');
+      }
+
+      const result = await this.chain.provider.executeTransactionBlock({
+        transactionBlock: signedTransactionBytes,
+        signature: signedTransactionBytes,
+        requestType: 'WaitForEffectsCert',
+      });
+
+      return result.digest;
+    } catch (error) {
+      console.error('Error sending raw Sui transaction:', error);
+      throw error;
+    }
   }
 
   // Sign all transactions
@@ -305,19 +263,9 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
     totalGas: string;
   }> {
     try {
-      let tx: Transaction;
-
-      if (transaction.transaction) {
-        tx = transaction.transaction;
-      } else if (transaction.to && transaction.amount) {
-        tx = this.createTransferTransaction(transaction.to, transaction.amount);
-      } else {
-        throw new Error('Invalid transaction for gas estimation');
-      }
-
       // Dry run to estimate gas
       const dryRunResult = await this.chain.provider.dryRunTransactionBlock({
-        transactionBlock: await tx.build({ client: this.chain.provider }),
+        transactionBlock: await transaction.build({ client: this.chain.provider }),
       });
 
       if (dryRunResult.effects.status.status === 'failure') {
