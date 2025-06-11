@@ -42,3 +42,10 @@ next-env.d.ts
 node_modules/
 
 SUI_*.md
+dist/
+**/*/dist/
+
+# lock
+
+yarn.lock
+package-lock.json

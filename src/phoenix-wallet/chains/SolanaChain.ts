@@ -8,7 +8,7 @@ export class SolanaChain extends Chain<Connection> {
   constructor(chainName: string, config: IChain<Connection>) {
     super(config);
     this._chainName = chainName;
-    this._provider = new Connection(config.rpcUrl);
+    this._provider = new Connection(config.privateRpcUrl);
   }
 
   get chainName(): string {

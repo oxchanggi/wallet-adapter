@@ -1,6 +1,41 @@
-import { ConnectorStatus } from '@/phoenix-wallet/connectors/types';
-import { useWallet } from '@/phoenix-wallet/hooks/useWallet';
-import React, { useState } from 'react';
+import { ConnectorStatus, useWallet, EvmChain, ChainType, useWalletConnectors } from '@phoenix-wallet/wallet-adapter';
+import { JsonRpcProvider } from 'ethers';
+import { useState, useEffect } from 'react';
+import {
+  Button,
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  Typography,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  CircularProgress,
+  Chip,
+  Stack,
+  Alert,
+  Link,
+  Divider,
+  Paper,
+  Avatar,
+  IconButton,
+  Tooltip,
+} from '@mui/material';
+import {
+  AccountBalanceWallet,
+  ContentCopy,
+  AddCircle,
+  Sync,
+  Download,
+  Link as LinkIcon,
+  Check,
+  PowerSettingsNew,
+  Refresh,
+  Info,
+} from '@mui/icons-material';
 
 interface ConnectorItemProps {
   connectorId: string;
@@ -19,9 +54,28 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({ connectorId }) => 
     chainId,
     connect,
     disconnect,
+    switchChain,
+    wallet,
   } = useWallet(connectorId);
 
+  const { chainConfigs } = useWalletConnectors();
+
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [isAddingChain, setIsAddingChain] = useState<boolean>(false);
+  const [addChainError, setAddChainError] = useState<string | null>(null);
+  const [selectedChainId, setSelectedChainId] = useState<string>('');
+  const [copied, setCopied] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    // Check if user is on a mobile device
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+      return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+    };
+
+    setIsMobile(checkMobile());
+  }, []);
 
   if (!connector) {
     return null;
@@ -33,17 +87,23 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({ connectorId }) => 
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   // Get the status color for UI
   const getStatusColor = () => {
     switch (status) {
       case ConnectorStatus.CONNECTED:
-        return 'bg-green-500';
+        return 'success';
       case ConnectorStatus.CONNECTING:
-        return 'bg-yellow-500';
+        return 'warning';
       case ConnectorStatus.ERROR:
-        return 'bg-red-500';
+        return 'error';
       default:
-        return 'bg-gray-300';
+        return 'default';
     }
   };
 
@@ -83,120 +143,252 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({ connectorId }) => 
   };
 
   const handleInstall = () => {
-    switch (connector.id) {
-      case 'metamaskevm':
-        window.open('https://metamask.io/download/', '_blank');
-        break;
-      case 'phantomevm':
-        window.open('https://phantom.app/download', '_blank');
-        break;
-      case 'coinbaseevm':
-        window.open('https://www.coinbase.com/wallet/downloads', '_blank');
-        break;
-      case 'rabbyevm':
-        window.open('https://rabby.io/', '_blank');
-        break;
-      case 'magicedenevm':
-      default:
-        window.open('https://metamask.io/download/', '_blank');
+    window.open(connector.installLink, '_blank');
+  };
+
+  const handleAddChain = async () => {
+    if (!connector || connector.chainType !== ChainType.EVM || !selectedChainId) {
+      return;
+    }
+
+    setIsAddingChain(true);
+    setAddChainError(null);
+
+    try {
+      // Find the selected chain from chainConfigs
+      const chainToAdd = chainConfigs.find((chain) => chain.id === selectedChainId);
+
+      if (!chainToAdd) {
+        throw new Error('Selected chain not found');
+      }
+
+      // Create the EvmChain instance
+      const provider = new JsonRpcProvider(chainToAdd.publicRpcUrl);
+      const chainWithProvider = {
+        ...chainToAdd,
+        chainName: chainToAdd.name,
+        provider: provider,
+      };
+
+      const evmChain = new EvmChain(chainToAdd.name, chainWithProvider as any);
+      await connector.addChain(evmChain);
+      console.log(`Successfully added chain: ${chainToAdd.name}`);
+
+      // Reset the selection after successful addition
+      setSelectedChainId('');
+    } catch (error: any) {
+      console.error(`Failed to add chain:`, error);
+      setAddChainError(error.message || 'Failed to add chain');
+    } finally {
+      setIsAddingChain(false);
     }
   };
 
   return (
-    <div className="border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center">
-          {connector.logo && (
-            <img
-              src={connector.logo}
-              alt={`${connector.name} logo`}
-              className="w-8 h-8 mr-3"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
-            />
+    <Card elevation={3} sx={{ mt: 4, borderRadius: 2, overflow: 'visible' }}>
+      <CardHeader
+        avatar={
+          <Avatar
+            sx={{
+              width: 56,
+              height: 56,
+              bgcolor: 'background.paper',
+              border: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            {connector.logo ? (
+              <Box
+                component="img"
+                src={connector.logo}
+                alt={`${connector.name} logo`}
+                sx={{ width: '80%', height: '80%', objectFit: 'contain' }}
+                onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            ) : (
+              <AccountBalanceWallet fontSize="large" color="primary" />
+            )}
+          </Avatar>
+        }
+        title={
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Typography variant="h6" component="h3">
+              {connector.name}
+            </Typography>
+            <Chip label={getStatusText()} size="small" color={getStatusColor()} sx={{ ml: 1 }} />
+          </Box>
+        }
+        subheader={
+          <Typography variant="subtitle2" color="text.secondary">
+            {connector.chainType} Wallet
+          </Typography>
+        }
+        action={
+          isConnected && (
+            <IconButton color="error" onClick={handleDisconnect} title="Disconnect">
+              <PowerSettingsNew />
+            </IconButton>
+          )
+        }
+      />
+
+      <Divider />
+
+      <CardContent>
+        {isConnected && address && (
+          <Box sx={{ mb: 3, p: 2, bgcolor: 'background.default', borderRadius: 2 }}>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+              Wallet Address
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Typography variant="body1" fontFamily="monospace" sx={{ wordBreak: 'break-all' }}>
+                {address}
+              </Typography>
+              <Tooltip title={copied ? 'Copied!' : 'Copy to clipboard'}>
+                <IconButton size="small" sx={{ ml: 1 }} onClick={() => copyToClipboard(address || '')}>
+                  {copied ? <Check fontSize="small" color="success" /> : <ContentCopy fontSize="small" />}
+                </IconButton>
+              </Tooltip>
+            </Box>
+            {chainId && (
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
+                <Typography variant="body2">
+                  <strong>Chain ID:</strong> {chainId}
+                </Typography>
+                {wallet && (
+                  <Button variant="outlined" size="small" startIcon={<Sync />} onClick={() => wallet.getBalance()}>
+                    Refresh Balance
+                  </Button>
+                )}
+              </Box>
+            )}
+          </Box>
+        )}
+
+        <Box sx={{ mt: 2 }}>
+          {isInstalled === false && !isMobile && (
+            <Button
+              fullWidth
+              variant="contained"
+              color="secondary"
+              startIcon={<Download />}
+              onClick={handleInstall}
+              size="large"
+              sx={{ py: 1.5 }}
+            >
+              Install {connector.name}
+            </Button>
           )}
-          <h3 className="font-medium text-lg text-black">{connector.name}</h3>
-        </div>
-        <div className="flex items-center">
-          <span className={`inline-block w-3 h-3 rounded-full ${getStatusColor()} mr-2`}></span>
-          <span className="text-sm text-gray-600">{getStatusText()}</span>
-        </div>
-      </div>
 
-      {isConnected && address && (
-        <div className="text-sm text-gray-600 mb-3">
-          <div className="font-mono">Address: {formatAddress(address)}</div>
-          {chainId && <div className="mt-1">Chain ID: {chainId}</div>}
-        </div>
-      )}
+          {(isInstalled || isMobile) && isDisconnected && (
+            <Button
+              fullWidth
+              variant="contained"
+              color="primary"
+              startIcon={<AccountBalanceWallet />}
+              onClick={handleConnect}
+              size="large"
+              sx={{ py: 1.5 }}
+            >
+              Connect to {connector.name}
+            </Button>
+          )}
 
-      <div className="mt-3">
-        {isInstalled === false && (
-          <button
-            className="w-full py-2 px-4 bg-purple-500 hover:bg-purple-600 text-white rounded transition-colors"
-            onClick={handleInstall}
-          >
-            Install {connector.name}
-          </button>
-        )}
+          {isConnecting && (
+            <Box>
+              <Button
+                fullWidth
+                variant="contained"
+                color="primary"
+                disabled
+                startIcon={<CircularProgress size={20} color="inherit" />}
+                sx={{ mb: 1, py: 1.5 }}
+                size="large"
+              >
+                Connecting...
+              </Button>
+              <Alert severity="info" icon={<Info />}>
+                Check your wallet for connection prompt
+              </Alert>
+            </Box>
+          )}
 
-        {isInstalled && isDisconnected && (
-          <button
-            className="w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors"
-            onClick={handleConnect}
-          >
-            Connect
-          </button>
-        )}
+          {isConnected && connector.chainType === ChainType.EVM && (
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                Add Network Chain
+              </Typography>
+              <Paper variant="outlined" sx={{ p: 2, bgcolor: 'background.default' }}>
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2 }}>
+                  <Box sx={{ flex: '1 1 auto' }}>
+                    <FormControl fullWidth>
+                      <InputLabel id={`chain-select-label-${connectorId}`}>Select Chain</InputLabel>
+                      <Select
+                        labelId={`chain-select-label-${connectorId}`}
+                        value={selectedChainId}
+                        onChange={(e) => setSelectedChainId(e.target.value)}
+                        disabled={isAddingChain}
+                        label="Select Chain"
+                      >
+                        <MenuItem value="">
+                          <em>Choose a network to add</em>
+                        </MenuItem>
+                        {chainConfigs
+                          .filter((chain) => chain.chainType === ChainType.EVM && chain.id !== chainId)
+                          .map((chain) => (
+                            <MenuItem key={chain.id} value={chain.id}>
+                              {chain.name} ({chain.id})
+                            </MenuItem>
+                          ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
+                  <Box>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      color="success"
+                      startIcon={isAddingChain ? <CircularProgress size={20} color="inherit" /> : <AddCircle />}
+                      onClick={handleAddChain}
+                      disabled={isAddingChain || !selectedChainId}
+                      sx={{ height: '100%' }}
+                    >
+                      {isAddingChain ? 'Adding...' : 'Add Chain'}
+                    </Button>
+                  </Box>
+                </Box>
+              </Paper>
+            </Box>
+          )}
 
-        {isConnecting && (
-          <div>
-            <button className="w-full py-2 px-4 bg-gray-400 text-white rounded cursor-wait mb-2" disabled>
-              <span className="inline-block mr-2">
-                <svg
-                  className="animate-spin h-4 w-4 text-white inline-block"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-              </span>
-              Connecting...
-            </button>
-            <p className="text-xs text-gray-500 text-center">Check your wallet for connection prompt</p>
-          </div>
-        )}
-
-        {isConnected && (
-          <button
-            className="w-full py-2 px-4 bg-red-500 hover:bg-red-600 text-white rounded transition-colors"
-            onClick={handleDisconnect}
-          >
-            Disconnect
-          </button>
-        )}
+          {addChainError && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {addChainError}
+            </Alert>
+          )}
+        </Box>
 
         {hasError && (
-          <div>
-            <p className="text-red-500 text-sm mb-2">{connectionError || 'Failed to connect. Please try again.'}</p>
-            <button
-              className="w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors"
-              onClick={handleConnect}
-            >
-              Retry
-            </button>
-          </div>
+          <Box sx={{ mt: 3 }}>
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {connectionError || 'Failed to connect. Please try again.'}
+            </Alert>
+            <Button fullWidth variant="contained" color="primary" onClick={handleConnect} startIcon={<Refresh />}>
+              Retry Connection
+            </Button>
+          </Box>
         )}
-      </div>
+      </CardContent>
 
-      <div className="mt-2 text-xs text-gray-400">ID: {connectorId}</div>
-    </div>
+      <Divider />
+
+      <Box sx={{ p: 2, bgcolor: 'background.default' }}>
+        <Typography variant="caption" color="text.secondary">
+          Connector ID: <span style={{ fontFamily: 'monospace' }}>{connectorId}</span>
+        </Typography>
+      </Box>
+    </Card>
   );
 };

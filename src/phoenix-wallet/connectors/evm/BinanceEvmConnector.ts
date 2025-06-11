@@ -2,8 +2,6 @@ import { getProvider } from '@binance/w3w-ethereum-provider';
 import { DappMetadata } from '../types';
 import { EvmConnector } from './EvmConnector';
 
-// const binanceProvider = getProvider()
-
 export class BinanceEvmConnector extends EvmConnector {
   private binanceProvider: any;
   constructor(dappMetadata: DappMetadata) {
@@ -18,6 +16,10 @@ export class BinanceEvmConnector extends EvmConnector {
   }
   get provider(): any {
     return this.binanceProvider;
+  }
+
+  get installLink(): string {
+    return 'https://www.binance.com';
   }
 
   async init(): Promise<void> {

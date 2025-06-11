@@ -1,18 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChainType, IChain } from '../chains/Chain';
 import { EvmChain } from '../chains/EvmChain';
-import { EvmConnector } from '../connectors';
+import { EvmConnector, SolanaConnector, SuiConnector } from '../connectors';
 import { IConnector } from '../connectors/IConnector';
 import { ConnectorStatus } from '../connectors/types';
 import { useWalletConnectors } from '../contexts/WalletContext';
 import { useWalletConnectorEvent } from './useWalletConnectorEvent';
-import { IWallet } from '../wallets/IWallet';
-import { EvmWallet } from '../wallets/EvmWallet';
-import { SuiWallet } from '../wallets/SuiWallet';
-import { SuiConnector } from '../connectors/sui/SuiConnector';
+import { SolanaChain } from '../chains/SolanaChain';
+import { Connection } from '@solana/web3.js';
+import { SolanaWallet } from '../wallets/SolanaWallet';
 import { SuiChain } from '../chains/SuiChain';
+import { EvmWallet, IWallet, SuiWallet } from '../wallets';
 import { JsonRpcProvider } from 'ethers';
-import { SuiClient } from '@mysten/sui/client';
 // Interface for the connector-specific return values
 interface WalletState {
   connector: IConnector | null;
@@ -361,6 +360,37 @@ export function useWallet(connectorId: string): WalletState {
       return new SuiWallet(address, suiChain, connector as SuiConnector, connector.createWalletClient(suiChain));
     }
 
+    if (connector.chainType === ChainType.SOLANA) {
+      // Find a chain config matching the current chainId
+      const chain = chainConfigs.find((c) => c.id === chainId && c.chainType === ChainType.SOLANA);
+
+      if (!chain) {
+        console.warn(`No chain config found for chainId: ${chainId}`);
+        // Attempt to get the chain ID again if it's not available
+        if (!chainId) {
+          connector
+            .getChainId()
+            .then((newChainId) => {
+              if (newChainId) {
+                console.log(`Updated chain ID to: ${newChainId}`);
+                setChainId(newChainId);
+              }
+            })
+            .catch((error) => {
+              console.error('Error getting chain ID:', error);
+            });
+        }
+        return null;
+      }
+
+      const solanaChain = new SolanaChain(chain.name, chain as IChain<Connection>);
+      return new SolanaWallet(
+        address,
+        solanaChain,
+        connector as SolanaConnector,
+        connector.createWalletClient(solanaChain)
+      );
+    }
     return null;
   }, [status, address, chainId, connector, chainConfigs]);
 
