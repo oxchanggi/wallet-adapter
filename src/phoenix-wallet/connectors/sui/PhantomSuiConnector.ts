@@ -20,10 +20,10 @@ export class PhantomSuiConnector extends SuiConnector {
 
   constructor(dappMetadata: DappMetadata) {
     super(
-      'phantom-sui',
+      'phantom_sui',
       {
         name: 'Phantom Sui',
-        logo: 'https://phantom.app/favicon.ico',
+        logo: 'https://docs.phantom.com/~gitbook/image?url=https%3A%2F%2F187760183-files.gitbook.io%2F%7E%2Ffiles%2Fv0%2Fb%2Fgitbook-x-prod.appspot.com%2Fo%2Fspaces%252F-MVOiF6Zqit57q_hxJYp%252Ficon%252FU7kNZ4ygz4QW1rUwOuTT%252FWhite%2520Ghost_docs_nu.svg%3Falt%3Dmedia%26token%3D447b91f6-db6d-4791-902d-35d75c19c3d1&width=48&height=48&sign=23b24c2a&sv=2',
       },
       dappMetadata
     );
@@ -84,16 +84,11 @@ export class PhantomSuiConnector extends SuiConnector {
         throw new Error('No address or accounts returned from Phantom Sui wallet');
       }
 
-      // Set active address
-      this.activeAddress = address;
-
-      // Get current chain
-      // this.activeChainId = await this.getChainId();
-      this.activeChainId = 'sui:mainnet'; // TODO: fix this
+      this.storageConnect(address, 'sui:mainnet');
 
       return {
-        address: this.activeAddress,
-        chainId: this.activeChainId,
+        address: address,
+        chainId: 'sui:mainnet',
       };
     } catch (error) {
       console.error('Error connecting to Phantom Sui:', error);
@@ -350,11 +345,6 @@ export class PhantomSuiConnector extends SuiConnector {
       name: this.suiProvider?.name || 'Phantom (Sui)',
       icon: this.suiProvider?.icon || this.logo,
     };
-  }
-
-  // Check if currently connected to Phantom Sui
-  async isConnected(): Promise<boolean> {
-    return (await super.isConnected()) && !!this.suiProvider;
   }
 
   // Get Phantom version (if available)

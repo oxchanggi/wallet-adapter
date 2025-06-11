@@ -81,8 +81,6 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
 
       const transactionBlock = await this.convertToSuiTransactionBlock(transaction);
 
-      console.log('this.suiProvider', this.suiProvider);
-
       // Execute the transaction using the provider
       const result = await this.suiProvider.signAndExecuteTransaction({
         transaction: transactionBlock,
