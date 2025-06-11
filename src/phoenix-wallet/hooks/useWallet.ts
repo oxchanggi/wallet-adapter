@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChainType, IChain } from '../chains/Chain';
 import { EvmChain } from '../chains/EvmChain';
-import { EvmConnector, SolanaConnector } from '../connectors';
+import { EvmConnector, SolanaConnector, SuiConnector } from '../connectors';
 import { IConnector } from '../connectors/IConnector';
 import { ConnectorStatus } from '../connectors/types';
 import { useWalletConnectors } from '../contexts/WalletContext';
@@ -9,7 +9,6 @@ import { useWalletConnectorEvent } from './useWalletConnectorEvent';
 import { IWallet } from '../wallets/IWallet';
 import { EvmWallet } from '../wallets/EvmWallet';
 import { SuiWallet } from '../wallets/SuiWallet';
-import { SuiConnector } from '../connectors/sui/SuiConnector';
 import { SuiChain } from '../chains/SuiChain';
 import { JsonRpcProvider } from 'ethers';
 import { SuiClient } from '@mysten/sui/client';

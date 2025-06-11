@@ -33,6 +33,7 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
       // Get the provider from connector
       if (!this.suiProvider) {
         throw new Error('Sui provider not available');
+        throw new Error('Sui provider not available');
       }
 
       const transactionBlock = await this.convertToSuiTransactionBlock(transaction);
@@ -47,6 +48,7 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
       return signedTransaction.signature;
     } catch (error) {
       console.error('Error signing Sui transaction:', error);
+      console.error('Error signing Sui transaction:', error);
       throw error;
     }
   }
@@ -56,12 +58,15 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
     try {
       if (!this.suiProvider) {
         throw new Error('Sui provider not available');
+        throw new Error('Sui provider not available');
       }
 
+      const signedMessage = await this.suiProvider.signMessage(new TextEncoder().encode(message), this._address);
       const signedMessage = await this.suiProvider.signMessage(new TextEncoder().encode(message), this._address);
 
       return signedMessage.signature;
     } catch (error) {
+      console.error('Error signing Sui message:', error);
       console.error('Error signing Sui message:', error);
       throw error;
     }
@@ -77,6 +82,7 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
     try {
       if (!this.suiProvider) {
         throw new Error('Sui provider not available');
+        throw new Error('Sui provider not available');
       }
 
       const transactionBlock = await this.convertToSuiTransactionBlock(transaction);
@@ -91,6 +97,7 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
 
       return result.digest;
     } catch (error) {
+      console.error('Error sending Sui transaction:', error);
       console.error('Error sending Sui transaction:', error);
       throw error;
     }
@@ -111,6 +118,7 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
 
       return result.digest;
     } catch (error) {
+      console.error('Error sending raw Sui transaction:', error);
       console.error('Error sending raw Sui transaction:', error);
       throw error;
     }
@@ -168,11 +176,13 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
       return balance.totalBalance;
     } catch (error) {
       console.error('Error getting Sui balance:', error);
+      console.error('Error getting Sui balance:', error);
       throw error;
     }
   }
 
   // Get all coin balances
+  async getAllBalances(): Promise<Array<{ coinType: string; balance: string }>> {
   async getAllBalances(): Promise<Array<{ coinType: string; balance: string }>> {
     try {
       const balances = await this.chain.provider.getAllBalances({
@@ -183,6 +193,7 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
         balance: balance.totalBalance,
       }));
     } catch (error) {
+      console.error('Error getting all Sui balances:', error);
       console.error('Error getting all Sui balances:', error);
       throw error;
     }
@@ -199,6 +210,7 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
       const objects = await this.chain.provider.getOwnedObjects({
         owner: this._address,
         filter: options?.filter?.StructType ? { StructType: options.filter.StructType } : null,
+        filter: options?.filter?.StructType ? { StructType: options.filter.StructType } : null,
         options: {
           showType: true,
           showOwner: true,
@@ -211,6 +223,7 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
       });
       return objects.data;
     } catch (error) {
+      console.error('Error getting owned Sui objects:', error);
       console.error('Error getting owned Sui objects:', error);
       throw error;
     }
@@ -225,6 +238,7 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
         },
         limit: limit,
         order: 'descending',
+        order: 'descending',
         options: {
           showInput: true,
           showEffects: true,
@@ -235,6 +249,7 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
       });
       return transactions.data;
     } catch (error) {
+      console.error('Error getting Sui transaction history:', error);
       console.error('Error getting Sui transaction history:', error);
       throw error;
     }
@@ -268,9 +283,12 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
 
       if (dryRunResult.effects.status.status === 'failure') {
         throw new Error(`Transaction would fail: ${dryRunResult.effects.status.error}`);
+      if (dryRunResult.effects.status.status === 'failure') {
+        throw new Error(`Transaction would fail: ${dryRunResult.effects.status.error}`);
       }
 
       const gasUsed = dryRunResult.effects.gasUsed;
+      const totalGas = BigInt(gasUsed.computationCost) + BigInt(gasUsed.storageCost) - BigInt(gasUsed.storageRebate);
       const totalGas = BigInt(gasUsed.computationCost) + BigInt(gasUsed.storageCost) - BigInt(gasUsed.storageRebate);
 
       return {
@@ -280,6 +298,7 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
         totalGas: totalGas.toString(),
       };
     } catch (error) {
+      console.error('Error estimating Sui gas:', error);
       console.error('Error estimating Sui gas:', error);
       throw error;
     }

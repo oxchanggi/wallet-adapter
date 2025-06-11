@@ -1,8 +1,8 @@
-import { ConnectorConfig, DappMetadata } from "../types";
-import { Connector } from "../IConnector";
-import { ChainType } from "../../chains/Chain";
-import { SuiChain } from "../../chains/SuiChain";
-import { SuiClient } from "@mysten/sui/client";
+import { ConnectorConfig, DappMetadata } from '../types';
+import { Connector } from '../IConnector';
+import { ChainType } from '../../chains/Chain';
+import { SuiChain } from '../../chains/SuiChain';
+import { SuiClient } from '@mysten/sui/client';
 import {
   SuiTransactionResponse,
   SuiSignedTransaction,
@@ -106,15 +106,22 @@ export abstract class SuiConnector extends Connector {
     switch (chainId.toLowerCase()) {
       case 'sui:mainnet':
         rpcUrl = 'https://fullnode.mainnet.sui.io:443';
+      case 'sui:mainnet':
+        rpcUrl = 'https://fullnode.mainnet.sui.io:443';
         break;
+      case 'sui:testnet':
+        rpcUrl = 'https://fullnode.testnet.sui.io:443';
       case 'sui:testnet':
         rpcUrl = 'https://fullnode.testnet.sui.io:443';
         break;
       case 'sui:devnet':
         rpcUrl = 'https://fullnode.devnet.sui.io:443';
+      case 'sui:devnet':
+        rpcUrl = 'https://fullnode.devnet.sui.io:443';
         break;
       default:
         // Default to devnet for unknown chains
+        rpcUrl = 'https://fullnode.devnet.sui.io:443';
         rpcUrl = 'https://fullnode.devnet.sui.io:443';
     }
 
@@ -124,6 +131,7 @@ export abstract class SuiConnector extends Connector {
   // Create wallet client for Sui operations (similar to EvmConnector.createWalletClient)
   createWalletClient(chain: SuiChain): SuiWalletClient {
     if (!this.provider) {
+      throw new Error('Sui provider not available');
       throw new Error('Sui provider not available');
     }
 
@@ -156,12 +164,18 @@ export abstract class SuiConnector extends Connector {
   // Sui-specific helper methods
   protected async getNetworkFromChainId(chainId: string): Promise<'mainnet' | 'testnet' | 'devnet'> {
     const networkPart = chainId.toLowerCase().split(':')[1];
+  protected async getNetworkFromChainId(chainId: string): Promise<'mainnet' | 'testnet' | 'devnet'> {
+    const networkPart = chainId.toLowerCase().split(':')[1];
     switch (networkPart) {
+      case 'mainnet':
+      case 'testnet':
+      case 'devnet':
       case 'mainnet':
       case 'testnet':
       case 'devnet':
         return networkPart;
       default:
+        return 'devnet'; // Default fallback
         return 'devnet'; // Default fallback
     }
   }
