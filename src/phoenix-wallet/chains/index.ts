@@ -8,5 +8,4 @@ export * from "./EvmChain";
 export * from "./SolanaChain";
 
 // Sui chain implementation
-export * from "./SuiChain";
-export * from "./SuiChainConfigs";
+export * from './SuiChain';

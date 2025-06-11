@@ -12,8 +12,7 @@ export * from './wallets/SolanaWallet';
 export * from "./wallets/EvmWallet";
 export * from "./wallets/SuiWallet";
 
-export * from "./chains/SuiChain";
-export * from "./chains/SuiChainConfigs";
+export * from './chains/SuiChain';
 
 
 

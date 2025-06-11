@@ -108,10 +108,8 @@ export class PhantomSuiConnector extends SuiConnector {
       this.activeChainId = undefined;
       this.provider = null;
       this.suiProvider = null;
-      this.suiClient = null;
 
       // Remove event listeners
-      this.removeEventListeners();
     } catch (error) {
       console.error('Error disconnecting from Phantom Sui:', error);
       throw error;
@@ -161,13 +159,9 @@ export class PhantomSuiConnector extends SuiConnector {
           address: string;
           publicKey: { [key: number]: number };
         };
-        this.handleAccountChange({
-          accounts: [event.address],
-        });
+        this.handleEventAccountChanged([event.address]);
 
-        this.handleConnect({
-          accounts: [event.address],
-        });
+        this.handleEventConnect(event.address, this.activeChainId);
       });
 
       // Account change events
@@ -176,9 +170,7 @@ export class PhantomSuiConnector extends SuiConnector {
           address: string;
           publicKey: { [key: number]: number };
         };
-        this.handleAccountChange({
-          accounts: [event.address],
-        });
+        this.handleEventAccountChanged([event.address]);
       });
 
       // Chain/Network change events
@@ -194,9 +186,7 @@ export class PhantomSuiConnector extends SuiConnector {
           address: string;
           publicKey: { [key: number]: number };
         };
-        this.handleConnect({
-          accounts: [event.address],
-        });
+        this.handleEventConnect(event.address, this.activeChainId);
       });
 
       // Disconnect events
@@ -209,55 +199,6 @@ export class PhantomSuiConnector extends SuiConnector {
       console.log('Event listeners setup: ===================');
     } catch (error) {
       console.error('Error setting up Phantom Sui event listeners:', error);
-    }
-  }
-
-  // Remove event listeners
-  private removeEventListeners(): void {
-    if (!this.suiProvider || !this.eventListenersSetup) {
-      return;
-    }
-
-    try {
-      this.suiProvider.off('accountChanged', (...args: unknown[]) => {
-        const event = args[0] as {
-          address: string;
-          publicKey: { [key: number]: number };
-        };
-        this.handleAccountChange({
-          accounts: [event.address],
-        });
-      });
-
-      this.suiProvider.off('accountChange', (...args: unknown[]) => {
-        const event = args[0] as {
-          address: string;
-          publicKey: { [key: number]: number };
-        };
-        this.handleAccountChange({
-          accounts: [event.address],
-        });
-      });
-      this.suiProvider.off('chainChange', (...args: unknown[]) => {
-        const event = args[0] as { chain: string };
-        this.handleChainChange(event);
-      });
-      this.suiProvider.off('connect', (...args: unknown[]) => {
-        const event = args[0] as {
-          address: string;
-          publicKey: { [key: number]: number };
-        };
-        this.handleConnect({
-          accounts: [event.address],
-        });
-      });
-      this.suiProvider.off('disconnect', () => {
-        this.handleDisconnect();
-      });
-
-      this.eventListenersSetup = false;
-    } catch (error) {
-      console.error('Error removing Phantom Sui event listeners:', error);
     }
   }
 
@@ -288,35 +229,12 @@ export class PhantomSuiConnector extends SuiConnector {
     }
   }
 
-  // Event handlers
-  private async handleAccountChange(event: { accounts: string[] }): Promise<void> {
-    try {
-      const accounts = event.accounts || [];
-      await this.handleEventAccountChanged(accounts);
-    } catch (error) {
-      console.error('Error handling account change:', error);
-    }
-  }
-
   private async handleChainChange(event: { chain: string }): Promise<void> {
     try {
       const chainId = event.chain || 'sui:mainnet';
       await this.handleEventChainChanged(chainId);
     } catch (error) {
       console.error('Error handling chain change:', error);
-    }
-  }
-
-  private async handleConnect(event: { accounts: string[] }): Promise<void> {
-    try {
-      const accounts = event.accounts || [];
-      if (accounts.length > 0) {
-        this.activeAddress = accounts[0];
-        this.activeChainId = await this.getChainId();
-        await this.handleEventConnect(this.activeAddress, this.activeChainId);
-      }
-    } catch (error) {
-      console.error('Error handling connect event:', error);
     }
   }
 
@@ -331,7 +249,6 @@ export class PhantomSuiConnector extends SuiConnector {
       this.activeChainId = undefined;
       this.provider = null;
       this.suiProvider = null;
-      this.suiClient = null;
     } catch (error) {
       console.error('Error handling disconnect event:', error);
     }
@@ -345,53 +262,5 @@ export class PhantomSuiConnector extends SuiConnector {
       name: this.suiProvider?.name || 'Phantom (Sui)',
       icon: this.suiProvider?.icon || this.logo,
     };
-  }
-
-  // Get Phantom version (if available)
-  getWalletVersion(): string | undefined {
-    try {
-      return (this.suiProvider as unknown as { version?: string })?.version;
-    } catch {
-      return undefined;
-    }
-  }
-
-  // Check if this is actually Phantom wallet
-  isPhantomWallet(): boolean {
-    if (!this.suiProvider) return false;
-
-    return !!(
-      this.suiProvider.name === 'Phantom' ||
-      this.suiProvider.name === 'Phantom Sui' ||
-      // Check window.phantom exists to confirm it's Phantom
-      (typeof window !== 'undefined' && window.phantom)
-    );
-  }
-
-  // Get Phantom-specific features (if any)
-  getPhantomFeatures(): {
-    hasMultiChain?: boolean;
-    hasEthereumSupport?: boolean;
-    hasSolanaSupport?: boolean;
-    hasSuiSupport?: boolean;
-  } {
-    try {
-      if (typeof window === 'undefined' || !window.phantom) {
-        return {};
-      }
-
-      const phantom = window.phantom as Record<string, unknown>;
-      return {
-        hasMultiChain: true, // Phantom is a multi-chain wallet
-        hasEthereumSupport: !!phantom.ethereum,
-        hasSolanaSupport: !!phantom.solana,
-        hasSuiSupport: !!phantom.sui,
-      };
-    } catch {
-      return {
-        hasMultiChain: true,
-        hasSuiSupport: true,
-      };
-    }
   }
 }
