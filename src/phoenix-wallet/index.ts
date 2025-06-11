@@ -29,8 +29,7 @@ export * from './connectors/evm/TrustWalletEvmConnector'
 export * from './connectors/evm/BinanceEvmConnector';
 export * from './connectors/evm/EvmConnector';
 export * from "./connectors/sui/SuiConnector";
-export * from "./connectors/sui/SuietConnector";
-export * from "./connectors/sui/SlushConnector";
+export * from './connectors/sui/SuietConnector';
 export * from "./connectors/sui/PhantomSuiConnector";
 export * from './connectors/evm/RabbyEvmConnector';
 export * from './connectors/evm/CoinbaseEvmConnector';

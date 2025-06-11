@@ -11,6 +11,7 @@ import {
   SolanaCluster,
   CoinbaseEvmConnector,
   RabbyEvmConnector,
+  PhantomSuiConnector,
 } from '@phoenix-wallet/wallet-adapter';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom';
 
@@ -32,6 +33,9 @@ export const defaultConnectors = [
 
   // Solana
   new SolanaConnector(dappMetadata, new PhantomWalletAdapter(), SolanaCluster.DEVNET),
+
+  // Sui
+  new PhantomSuiConnector(dappMetadata),
 ];
 
 export const chainConfigs = [

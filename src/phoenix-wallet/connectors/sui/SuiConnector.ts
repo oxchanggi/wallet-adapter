@@ -9,10 +9,10 @@ import {
   SuiSignedMessage,
   SuiSignAndExecuteTransactionBlockInput,
   SuiSignTransactionBlockInput,
-  SuiSignMessageInput,
   SuiConnectResult,
   SuiWalletEventType,
-} from "../../types/sui";
+} from '../../types/sui';
+import { SuiWalletClient } from './SuiWalletClient';
 
 // Sui Provider Interface - Standard Sui Wallet Interface
 export interface SuiProvider {
@@ -25,16 +25,9 @@ export interface SuiProvider {
   getChain(): Promise<string>;
 
   // Transaction methods
-  signAndExecuteTransactionBlock(
-    input: SuiSignAndExecuteTransactionBlockInput
-  ): Promise<SuiTransactionResponse>;
-  signTransaction(
-    input: SuiSignTransactionBlockInput
-  ): Promise<SuiSignedTransaction>;
-  signMessage(
-    message: Uint8Array<ArrayBufferLike>,
-    account?: string
-  ): Promise<SuiSignedMessage>;
+  signAndExecuteTransactionBlock(input: SuiSignAndExecuteTransactionBlockInput): Promise<SuiTransactionResponse>;
+  signTransaction(input: SuiSignTransactionBlockInput): Promise<SuiSignedTransaction>;
+  signMessage(message: Uint8Array<ArrayBufferLike>, account?: string): Promise<SuiSignedMessage>;
 
   // Event methods
   on(event: SuiWalletEventType, callback: (...args: unknown[]) => void): void;
@@ -97,30 +90,30 @@ export abstract class SuiConnector extends Connector {
 
     // Map Sui chain identifiers to RPC URLs
     switch (chainId.toLowerCase()) {
-      case "sui:mainnet":
-        rpcUrl = "https://fullnode.mainnet.sui.io:443";
+      case 'sui:mainnet':
+        rpcUrl = 'https://fullnode.mainnet.sui.io:443';
         break;
-      case "sui:testnet":
-        rpcUrl = "https://fullnode.testnet.sui.io:443";
+      case 'sui:testnet':
+        rpcUrl = 'https://fullnode.testnet.sui.io:443';
         break;
-      case "sui:devnet":
-        rpcUrl = "https://fullnode.devnet.sui.io:443";
+      case 'sui:devnet':
+        rpcUrl = 'https://fullnode.devnet.sui.io:443';
         break;
       default:
         // Default to devnet for unknown chains
-        rpcUrl = "https://fullnode.devnet.sui.io:443";
+        rpcUrl = 'https://fullnode.devnet.sui.io:443';
     }
 
     return new SuiClient({ url: rpcUrl });
   }
 
   // Create wallet client for Sui operations (similar to EvmConnector.createWalletClient)
-  createWalletClient(chain: SuiChain): SuiProvider {
+  createWalletClient(chain: SuiChain): SuiWalletClient {
     if (!this.provider) {
-      throw new Error("Sui provider not available");
+      throw new Error('Sui provider not available');
     }
 
-    return this.provider;
+    return new SuiWalletClient(this.provider);
   }
 
   // Abstract methods that must be implemented by concrete connectors
@@ -132,17 +125,15 @@ export abstract class SuiConnector extends Connector {
   abstract isInstalled(): Promise<boolean>;
 
   // Sui-specific helper methods
-  protected async getNetworkFromChainId(
-    chainId: string
-  ): Promise<"mainnet" | "testnet" | "devnet"> {
-    const networkPart = chainId.toLowerCase().split(":")[1];
+  protected async getNetworkFromChainId(chainId: string): Promise<'mainnet' | 'testnet' | 'devnet'> {
+    const networkPart = chainId.toLowerCase().split(':')[1];
     switch (networkPart) {
-      case "mainnet":
-      case "testnet":
-      case "devnet":
+      case 'mainnet':
+      case 'testnet':
+      case 'devnet':
         return networkPart;
       default:
-        return "devnet"; // Default fallback
+        return 'devnet'; // Default fallback
     }
   }
 
@@ -157,7 +148,7 @@ export abstract class SuiConnector extends Connector {
   }
 
   // Check if currently connected
-  protected isConnected(): boolean {
+  async isConnected(): Promise<boolean> {
     return !!(this.activeAddress && this.provider);
   }
 

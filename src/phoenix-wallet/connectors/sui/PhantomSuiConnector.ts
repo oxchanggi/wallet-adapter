@@ -1,16 +1,29 @@
-import { DappMetadata } from "../types";
-import { SuiConnector, SuiProvider } from "./SuiConnector";
+import { IChain } from '../../chains';
+import { DappMetadata } from '../types';
+import { SuiConnector, SuiProvider } from './SuiConnector';
 
 export class PhantomSuiConnector extends SuiConnector {
+  get installLink(): string {
+    throw new Error('Method not implemented.');
+  }
+  createPublicClient(chain: IChain<any>) {
+    throw new Error('Method not implemented.');
+  }
+  switchChainId(chainId: string): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+  addChain(chain: IChain<any>): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
   private suiProvider: SuiProvider | null = null;
   private eventListenersSetup = false;
 
   constructor(dappMetadata: DappMetadata) {
     super(
-      "phantom-sui",
+      'phantom-sui',
       {
-        name: "Phantom Sui",
-        logo: "https://phantom.app/favicon.ico",
+        name: 'Phantom Sui',
+        logo: 'https://phantom.app/favicon.ico',
       },
       dappMetadata
     );
@@ -19,7 +32,7 @@ export class PhantomSuiConnector extends SuiConnector {
   // Check if Phantom wallet with Sui support is installed
   async isInstalled(): Promise<boolean> {
     try {
-      if (typeof window === "undefined") {
+      if (typeof window === 'undefined') {
         return false;
       }
 
@@ -27,14 +40,12 @@ export class PhantomSuiConnector extends SuiConnector {
       const hasPhantomSui = !!(
         window.phantom?.sui ||
         // Check if Phantom is available and has Sui support
-        (window.phantom &&
-          typeof window.phantom === "object" &&
-          "sui" in window.phantom)
+        (window.phantom && typeof window.phantom === 'object' && 'sui' in window.phantom)
       );
 
       return hasPhantomSui;
     } catch (error) {
-      console.error("Error checking Phantom Sui installation:", error);
+      console.error('Error checking Phantom Sui installation:', error);
       return false;
     }
   }
@@ -43,15 +54,13 @@ export class PhantomSuiConnector extends SuiConnector {
   async connect(): Promise<{ address: string; chainId: string }> {
     try {
       if (!(await this.isInstalled())) {
-        throw new Error(
-          "Phantom wallet with Sui support is not installed. Please install Phantom wallet extension."
-        );
+        throw new Error('Phantom wallet with Sui support is not installed. Please install Phantom wallet extension.');
       }
 
       // Get Phantom Sui provider
       this.suiProvider = this.getPhantomSuiProvider();
       if (!this.suiProvider) {
-        throw new Error("Failed to access Phantom Sui provider");
+        throw new Error('Failed to access Phantom Sui provider');
       }
 
       this.provider = this.suiProvider;
@@ -60,10 +69,10 @@ export class PhantomSuiConnector extends SuiConnector {
       await this.setupEventListeners();
 
       // Request connection
-      console.log("Connecting to Phantom Sui wallet");
+      console.log('Connecting to Phantom Sui wallet');
       console.log(this.suiProvider);
       const connectResult = await this.suiProvider.requestAccount();
-      console.log("Connect result:", connectResult);
+      console.log('Connect result:', connectResult);
 
       // Handle both Phantom Sui and standard response structures
       let address: string;
@@ -75,9 +84,7 @@ export class PhantomSuiConnector extends SuiConnector {
         // Standard Sui wallet format: accounts array
         address = connectResult.accounts[0];
       } else {
-        throw new Error(
-          "No address or accounts returned from Phantom Sui wallet"
-        );
+        throw new Error('No address or accounts returned from Phantom Sui wallet');
       }
 
       // Set active address
@@ -85,14 +92,14 @@ export class PhantomSuiConnector extends SuiConnector {
 
       // Get current chain
       // this.activeChainId = await this.getChainId();
-      this.activeChainId = "sui:mainnet"; // TODO: fix this
+      this.activeChainId = 'sui:mainnet'; // TODO: fix this
 
       return {
         address: this.activeAddress,
         chainId: this.activeChainId,
       };
     } catch (error) {
-      console.error("Error connecting to Phantom Sui:", error);
+      console.error('Error connecting to Phantom Sui:', error);
       throw error;
     }
   }
@@ -100,7 +107,7 @@ export class PhantomSuiConnector extends SuiConnector {
   // Disconnect from Phantom Sui wallet
   async disconnect(): Promise<void> {
     try {
-      if (this.suiProvider) {
+      if (this.suiProvider && 'disconnect' in this.suiProvider) {
         await this.suiProvider.disconnect();
       }
 
@@ -114,7 +121,7 @@ export class PhantomSuiConnector extends SuiConnector {
       // Remove event listeners
       this.removeEventListeners();
     } catch (error) {
-      console.error("Error disconnecting from Phantom Sui:", error);
+      console.error('Error disconnecting from Phantom Sui:', error);
       throw error;
     }
   }
@@ -127,9 +134,9 @@ export class PhantomSuiConnector extends SuiConnector {
       }
 
       const connectResult = await this.suiProvider.requestAccount();
-      return [connectResult.address || ""];
+      return [connectResult.address || ''];
     } catch (error) {
-      console.error("Error getting connected addresses:", error);
+      console.error('Error getting connected addresses:', error);
       return [];
     }
   }
@@ -138,15 +145,15 @@ export class PhantomSuiConnector extends SuiConnector {
   async getChainId(): Promise<string> {
     try {
       if (!this.suiProvider) {
-        throw new Error("Phantom Sui provider not available");
+        throw new Error('Phantom Sui provider not available');
       }
 
       const chain = await this.suiProvider.getChain();
-      return chain || "sui:mainnet"; // Phantom typically defaults to mainnet
+      return chain || 'sui:mainnet'; // Phantom typically defaults to mainnet
     } catch (error) {
-      console.error("Error getting chain ID:", error);
+      console.error('Error getting chain ID:', error);
       // Return mainnet as default for Phantom
-      return "sui:mainnet";
+      return 'sui:mainnet';
     }
   }
 
@@ -158,7 +165,7 @@ export class PhantomSuiConnector extends SuiConnector {
 
     try {
       // Account changed events
-      this.suiProvider.on("accountChanged", (...args: unknown[]) => {
+      this.suiProvider.on('accountChanged', (...args: unknown[]) => {
         const event = args[0] as {
           address: string;
           publicKey: { [key: number]: number };
@@ -173,7 +180,7 @@ export class PhantomSuiConnector extends SuiConnector {
       });
 
       // Account change events
-      this.suiProvider.on("accountChange", (...args: unknown[]) => {
+      this.suiProvider.on('accountChange', (...args: unknown[]) => {
         const event = args[0] as {
           address: string;
           publicKey: { [key: number]: number };
@@ -184,14 +191,14 @@ export class PhantomSuiConnector extends SuiConnector {
       });
 
       // Chain/Network change events
-      this.suiProvider.on("chainChange", (...args: unknown[]) => {
+      this.suiProvider.on('chainChange', (...args: unknown[]) => {
         const event = args[0] as { chain: string };
         this.handleChainChange(event);
       });
 
       // Connect events
-      this.suiProvider.on("connect", (...args: unknown[]) => {
-        console.log("Connect event: ===================", args);
+      this.suiProvider.on('connect', (...args: unknown[]) => {
+        console.log('Connect event: ===================', args);
         const event = args[0] as {
           address: string;
           publicKey: { [key: number]: number };
@@ -202,15 +209,15 @@ export class PhantomSuiConnector extends SuiConnector {
       });
 
       // Disconnect events
-      this.suiProvider.on("disconnect", () => {
+      this.suiProvider.on('disconnect', () => {
         this.handleDisconnect();
       });
 
       this.eventListenersSetup = true;
 
-      console.log("Event listeners setup: ===================");
+      console.log('Event listeners setup: ===================');
     } catch (error) {
-      console.error("Error setting up Phantom Sui event listeners:", error);
+      console.error('Error setting up Phantom Sui event listeners:', error);
     }
   }
 
@@ -221,7 +228,7 @@ export class PhantomSuiConnector extends SuiConnector {
     }
 
     try {
-      this.suiProvider.off("accountChanged", (...args: unknown[]) => {
+      this.suiProvider.off('accountChanged', (...args: unknown[]) => {
         const event = args[0] as {
           address: string;
           publicKey: { [key: number]: number };
@@ -231,7 +238,7 @@ export class PhantomSuiConnector extends SuiConnector {
         });
       });
 
-      this.suiProvider.off("accountChange", (...args: unknown[]) => {
+      this.suiProvider.off('accountChange', (...args: unknown[]) => {
         const event = args[0] as {
           address: string;
           publicKey: { [key: number]: number };
@@ -240,11 +247,11 @@ export class PhantomSuiConnector extends SuiConnector {
           accounts: [event.address],
         });
       });
-      this.suiProvider.off("chainChange", (...args: unknown[]) => {
+      this.suiProvider.off('chainChange', (...args: unknown[]) => {
         const event = args[0] as { chain: string };
         this.handleChainChange(event);
       });
-      this.suiProvider.off("connect", (...args: unknown[]) => {
+      this.suiProvider.off('connect', (...args: unknown[]) => {
         const event = args[0] as {
           address: string;
           publicKey: { [key: number]: number };
@@ -253,20 +260,20 @@ export class PhantomSuiConnector extends SuiConnector {
           accounts: [event.address],
         });
       });
-      this.suiProvider.off("disconnect", () => {
+      this.suiProvider.off('disconnect', () => {
         this.handleDisconnect();
       });
 
       this.eventListenersSetup = false;
     } catch (error) {
-      console.error("Error removing Phantom Sui event listeners:", error);
+      console.error('Error removing Phantom Sui event listeners:', error);
     }
   }
 
   // Get Phantom Sui provider from window
   private getPhantomSuiProvider(): SuiProvider | null {
     try {
-      if (typeof window === "undefined") {
+      if (typeof window === 'undefined') {
         return null;
       }
 
@@ -276,42 +283,36 @@ export class PhantomSuiConnector extends SuiConnector {
       }
 
       // Fallback: check if phantom object has sui property
-      if (window.phantom && "sui" in window.phantom) {
+      if (window.phantom && 'sui' in window.phantom) {
         const suiProvider = (window.phantom as Record<string, unknown>).sui;
-        if (
-          suiProvider &&
-          typeof suiProvider === "object" &&
-          "connect" in suiProvider
-        ) {
+        if (suiProvider && typeof suiProvider === 'object' && 'connect' in suiProvider) {
           return suiProvider as unknown as SuiProvider;
         }
       }
 
       return null;
     } catch (error) {
-      console.error("Error accessing Phantom Sui provider:", error);
+      console.error('Error accessing Phantom Sui provider:', error);
       return null;
     }
   }
 
   // Event handlers
-  private async handleAccountChange(event: {
-    accounts: string[];
-  }): Promise<void> {
+  private async handleAccountChange(event: { accounts: string[] }): Promise<void> {
     try {
       const accounts = event.accounts || [];
       await this.handleEventAccountChanged(accounts);
     } catch (error) {
-      console.error("Error handling account change:", error);
+      console.error('Error handling account change:', error);
     }
   }
 
   private async handleChainChange(event: { chain: string }): Promise<void> {
     try {
-      const chainId = event.chain || "sui:mainnet";
+      const chainId = event.chain || 'sui:mainnet';
       await this.handleEventChainChanged(chainId);
     } catch (error) {
-      console.error("Error handling chain change:", error);
+      console.error('Error handling chain change:', error);
     }
   }
 
@@ -324,7 +325,7 @@ export class PhantomSuiConnector extends SuiConnector {
         await this.handleEventConnect(this.activeAddress, this.activeChainId);
       }
     } catch (error) {
-      console.error("Error handling connect event:", error);
+      console.error('Error handling connect event:', error);
     }
   }
 
@@ -341,7 +342,7 @@ export class PhantomSuiConnector extends SuiConnector {
       this.suiProvider = null;
       this.suiClient = null;
     } catch (error) {
-      console.error("Error handling disconnect event:", error);
+      console.error('Error handling disconnect event:', error);
     }
   }
 
@@ -350,14 +351,14 @@ export class PhantomSuiConnector extends SuiConnector {
   // Get Phantom wallet info
   getWalletInfo(): { name: string; icon?: string } {
     return {
-      name: this.suiProvider?.name || "Phantom (Sui)",
+      name: this.suiProvider?.name || 'Phantom (Sui)',
       icon: this.suiProvider?.icon || this.logo,
     };
   }
 
   // Check if currently connected to Phantom Sui
-  isConnected(): boolean {
-    return super.isConnected() && !!this.suiProvider;
+  async isConnected(): Promise<boolean> {
+    return (await super.isConnected()) && !!this.suiProvider;
   }
 
   // Get Phantom version (if available)
@@ -374,10 +375,10 @@ export class PhantomSuiConnector extends SuiConnector {
     if (!this.suiProvider) return false;
 
     return !!(
-      this.suiProvider.name === "Phantom" ||
-      this.suiProvider.name === "Phantom Sui" ||
+      this.suiProvider.name === 'Phantom' ||
+      this.suiProvider.name === 'Phantom Sui' ||
       // Check window.phantom exists to confirm it's Phantom
-      (typeof window !== "undefined" && window.phantom)
+      (typeof window !== 'undefined' && window.phantom)
     );
   }
 
@@ -389,7 +390,7 @@ export class PhantomSuiConnector extends SuiConnector {
     hasSuiSupport?: boolean;
   } {
     try {
-      if (typeof window === "undefined" || !window.phantom) {
+      if (typeof window === 'undefined' || !window.phantom) {
         return {};
       }
 

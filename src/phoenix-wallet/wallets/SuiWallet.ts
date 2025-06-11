@@ -1,8 +1,8 @@
-import { SuiClient } from "@mysten/sui/client";
-import { Transaction } from "@mysten/sui/transactions";
-import { Wallet } from "./IWallet";
-import { SuiChain } from "../chains/SuiChain";
-import { SuiConnector } from "../connectors/sui/SuiConnector";
+import { Transaction } from '@mysten/sui/transactions';
+import { Wallet } from './IWallet';
+import { SuiChain } from '../chains/SuiChain';
+import { SuiConnector } from '../connectors/sui/SuiConnector';
+import { SuiWalletClient } from '../connectors/sui/SuiWalletClient';
 
 // Sui Transaction Interface
 export interface SuiTransaction {
@@ -19,7 +19,7 @@ export interface SuiTransaction {
   gasPayment?: string; // Object ID of gas coin
 
   // Additional options
-  requestType?: "WaitForEffectsCert" | "WaitForLocalExecution";
+  requestType?: 'WaitForEffectsCert' | 'WaitForLocalExecution';
   options?: {
     showInput?: boolean;
     showEffects?: boolean;
@@ -29,18 +29,8 @@ export interface SuiTransaction {
   };
 }
 
-export class SuiWallet extends Wallet<
-  SuiTransaction,
-  SuiChain,
-  SuiConnector,
-  SuiClient
-> {
-  constructor(
-    _address: string,
-    chain: SuiChain,
-    connector: SuiConnector,
-    walletClient: SuiClient
-  ) {
+export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, SuiWalletClient> {
+  constructor(_address: string, chain: SuiChain, connector: SuiConnector, walletClient: SuiWalletClient) {
     super(_address, chain, connector, walletClient);
   }
 
@@ -54,10 +44,10 @@ export class SuiWallet extends Wallet<
     try {
       // Get the provider from connector
       if (!this.suiProvider) {
-        throw new Error("Sui provider not available");
+        throw new Error('Sui provider not available');
       }
 
-      if (!transaction.amount) {
+      if (!transaction.amount && 'value' in transaction) {
         transaction.amount = (transaction as any).value;
       }
 
@@ -81,23 +71,21 @@ export class SuiWallet extends Wallet<
 
         tx.transferObjects([coin], tx.pure.address(transaction.to));
       } else {
-        throw new Error(
-          "Invalid transaction: must provide either transaction or to/amount"
-        );
+        throw new Error('Invalid transaction: must provide either transaction or to/amount');
       }
 
       const _tx = await tx.toJSON();
 
       // Sign the transaction using the provider (correct method name)
       const signedTransaction = await this.suiProvider.signTransaction({
-        transaction: _tx as any, // TODO: fix this
+        transaction: _tx as any,
         address: this._address,
         networkID: this.chain.chainIdentifier,
       });
 
       return signedTransaction.signature;
     } catch (error) {
-      console.error("Error signing Sui transaction:", error);
+      console.error('Error signing Sui transaction:', error);
       throw error;
     }
   }
@@ -106,17 +94,14 @@ export class SuiWallet extends Wallet<
   async signMessage(message: string): Promise<string> {
     try {
       if (!this.suiProvider) {
-        throw new Error("Sui provider not available");
+        throw new Error('Sui provider not available');
       }
 
-      const signedMessage = await this.suiProvider.signMessage(
-        new TextEncoder().encode(message),
-        this._address
-      );
+      const signedMessage = await this.suiProvider.signMessage(new TextEncoder().encode(message), this._address);
 
       return signedMessage.signature;
     } catch (error) {
-      console.error("Error signing Sui message:", error);
+      console.error('Error signing Sui message:', error);
       throw error;
     }
   }
@@ -130,7 +115,7 @@ export class SuiWallet extends Wallet<
   async sendTransaction(transaction: SuiTransaction): Promise<string> {
     try {
       if (!this.suiProvider) {
-        throw new Error("Sui provider not available");
+        throw new Error('Sui provider not available');
       }
 
       let tx: Transaction;
@@ -152,73 +137,89 @@ export class SuiWallet extends Wallet<
 
         tx.transferObjects([coin], tx.pure.address(transaction.to));
       } else {
-        throw new Error(
-          "Invalid transaction: must provide either transaction or to/amount"
-        );
+        throw new Error('Invalid transaction: must provide either transaction or to/amount');
       }
 
       // Execute the transaction using the provider (correct method name)
       const result = await this.suiProvider.signAndExecuteTransactionBlock({
-        transactionBlock: tx as any, // TODO: fix this
+        transactionBlock: tx as any,
         account: this._address,
         chain: this.chain.chainIdentifier,
-        requestType: transaction.requestType || "WaitForEffectsCert",
+        requestType: transaction.requestType || 'WaitForEffectsCert',
       });
 
       return result.digest;
     } catch (error) {
-      console.error("Error sending Sui transaction:", error);
+      console.error('Error sending Sui transaction:', error);
       throw error;
     }
   }
 
   // Send a pre-signed transaction
-  async sendRawTransaction(signedTransactionBytes: string): Promise<string> {
-    try {
-      // Execute the signed transaction using SuiClient
-      const result = await this._walletClient.executeTransactionBlock({
-        transactionBlock: signedTransactionBytes,
-        signature: signedTransactionBytes, // This needs proper parsing
-        options: {
-          showEffects: true,
-          showObjectChanges: true,
-        },
-      });
+  async sendRawTransaction(_signedTransactionBytes: string): Promise<string> {
+    throw new Error('Not implemented');
+  }
 
-      return result.digest;
-    } catch (error) {
-      console.error("Error sending raw Sui transaction:", error);
-      throw error;
+  // Sign all transactions
+  async signAllTransactions(transactions: SuiTransaction[]): Promise<string[]> {
+    const signedTransactions: string[] = [];
+    for (const transaction of transactions) {
+      const signed = await this.signTransaction(transaction);
+      signedTransactions.push(signed);
     }
+    return signedTransactions;
   }
 
   // Get the Sui client instance
-  get walletClient(): SuiClient {
+  get walletClient(): SuiWalletClient {
     return this._walletClient;
   }
 
   // Additional Sui-specific methods
 
-  // Get account balance for a specific coin type
-  async getBalance(coinType: string = "0x2::sui::SUI"): Promise<string> {
+  // Get account balance for native SUI
+  async getBalance(): Promise<{ amount: string; uiAmount: string; decimals: number; symbol: string; name: string }> {
     try {
-      const balance = await this._walletClient.getBalance({
+      const balance = await this.chain.provider.getBalance({
+        owner: this._address,
+        coinType: '0x2::sui::SUI',
+      });
+
+      const nativeCurrency = this.chain.nativeCurrency;
+      const amount = balance.totalBalance;
+      const uiAmount = (parseInt(amount) / Math.pow(10, nativeCurrency.decimals)).toString();
+
+      return {
+        amount: amount,
+        uiAmount: uiAmount,
+        decimals: nativeCurrency.decimals,
+        symbol: nativeCurrency.symbol,
+        name: nativeCurrency.name,
+      };
+    } catch (error) {
+      console.error('Error getting Sui balance:', error);
+      throw error;
+    }
+  }
+
+  // Get balance for specific coin type
+  async getBalanceForCoin(coinType: string = '0x2::sui::SUI'): Promise<string> {
+    try {
+      const balance = await this.chain.provider.getBalance({
         owner: this._address,
         coinType: coinType,
       });
       return balance.totalBalance;
     } catch (error) {
-      console.error("Error getting Sui balance:", error);
+      console.error('Error getting Sui balance:', error);
       throw error;
     }
   }
 
   // Get all coin balances
-  async getAllBalances(): Promise<
-    Array<{ coinType: string; balance: string }>
-  > {
+  async getAllBalances(): Promise<Array<{ coinType: string; balance: string }>> {
     try {
-      const balances = await this._walletClient.getAllBalances({
+      const balances = await this.chain.provider.getAllBalances({
         owner: this._address,
       });
       return balances.map((balance) => ({
@@ -226,7 +227,7 @@ export class SuiWallet extends Wallet<
         balance: balance.totalBalance,
       }));
     } catch (error) {
-      console.error("Error getting all Sui balances:", error);
+      console.error('Error getting all Sui balances:', error);
       throw error;
     }
   }
@@ -239,11 +240,9 @@ export class SuiWallet extends Wallet<
     limit?: number;
   }) {
     try {
-      const objects = await this._walletClient.getOwnedObjects({
+      const objects = await this.chain.provider.getOwnedObjects({
         owner: this._address,
-        filter: options?.filter?.StructType
-          ? { StructType: options.filter.StructType }
-          : null,
+        filter: options?.filter?.StructType ? { StructType: options.filter.StructType } : null,
         options: {
           showType: true,
           showOwner: true,
@@ -256,7 +255,7 @@ export class SuiWallet extends Wallet<
       });
       return objects.data;
     } catch (error) {
-      console.error("Error getting owned Sui objects:", error);
+      console.error('Error getting owned Sui objects:', error);
       throw error;
     }
   }
@@ -264,12 +263,12 @@ export class SuiWallet extends Wallet<
   // Get transaction history
   async getTransactionHistory(limit: number = 20) {
     try {
-      const transactions = await this._walletClient.queryTransactionBlocks({
+      const transactions = await this.chain.provider.queryTransactionBlocks({
         filter: {
           FromAddress: this._address,
         },
         limit: limit,
-        order: "descending",
+        order: 'descending',
         options: {
           showInput: true,
           showEffects: true,
@@ -280,7 +279,7 @@ export class SuiWallet extends Wallet<
       });
       return transactions.data;
     } catch (error) {
-      console.error("Error getting Sui transaction history:", error);
+      console.error('Error getting Sui transaction history:', error);
       throw error;
     }
   }
@@ -313,25 +312,20 @@ export class SuiWallet extends Wallet<
       } else if (transaction.to && transaction.amount) {
         tx = this.createTransferTransaction(transaction.to, transaction.amount);
       } else {
-        throw new Error("Invalid transaction for gas estimation");
+        throw new Error('Invalid transaction for gas estimation');
       }
 
       // Dry run to estimate gas
-      const dryRunResult = await this._walletClient.dryRunTransactionBlock({
-        transactionBlock: await tx.build({ client: this._walletClient }),
+      const dryRunResult = await this.chain.provider.dryRunTransactionBlock({
+        transactionBlock: await tx.build({ client: this.chain.provider }),
       });
 
-      if (dryRunResult.effects.status.status === "failure") {
-        throw new Error(
-          `Transaction would fail: ${dryRunResult.effects.status.error}`
-        );
+      if (dryRunResult.effects.status.status === 'failure') {
+        throw new Error(`Transaction would fail: ${dryRunResult.effects.status.error}`);
       }
 
       const gasUsed = dryRunResult.effects.gasUsed;
-      const totalGas =
-        BigInt(gasUsed.computationCost) +
-        BigInt(gasUsed.storageCost) -
-        BigInt(gasUsed.storageRebate);
+      const totalGas = BigInt(gasUsed.computationCost) + BigInt(gasUsed.storageCost) - BigInt(gasUsed.storageRebate);
 
       return {
         computationCost: gasUsed.computationCost,
@@ -340,7 +334,7 @@ export class SuiWallet extends Wallet<
         totalGas: totalGas.toString(),
       };
     } catch (error) {
-      console.error("Error estimating Sui gas:", error);
+      console.error('Error estimating Sui gas:', error);
       throw error;
     }
   }
