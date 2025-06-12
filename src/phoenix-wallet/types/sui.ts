@@ -29,7 +29,7 @@ export interface SuiTransactionResponse {
 }
 
 export interface SuiSignedTransaction {
-  transactionBlockBytes: string;
+  transaction: string;
   signature: string;
 }
 

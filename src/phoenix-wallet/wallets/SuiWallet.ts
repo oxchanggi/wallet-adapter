@@ -4,6 +4,7 @@ import { SuiChain } from '../chains/SuiChain';
 import { SuiConnector } from '../connectors/sui/SuiConnector';
 import { SuiWalletClient } from '../connectors/sui/SuiWalletClient';
 import { SuiTransactionBlock } from '../types/sui';
+import { fromBase64 } from '@mysten/sui/utils';
 
 // Sui Transaction Type
 export type SuiTransaction = Transaction;
@@ -28,7 +29,7 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
   }
 
   // Sign a transaction block without executing it
-  async signTransaction(transaction: SuiTransaction): Promise<{ transaction: SuiTransaction; signature: string }> {
+  async signTransaction(transaction: SuiTransaction): Promise<{ transaction: string; signature: string }> {
     try {
       // Get the provider from connector
       if (!this.walletClient) {
@@ -44,7 +45,7 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
         networkID: this.chain.id,
       });
 
-      return { transaction: transaction, signature: signedTransaction.signature };
+      return { transaction: signedTransaction.transaction, signature: signedTransaction.signature };
     } catch (error) {
       console.error('Error signing Sui transaction:', error);
       throw error;
@@ -97,18 +98,14 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
   }
 
   // Send a pre-signed transaction
-  async sendRawTransaction(data: { transaction: SuiTransaction; signature: string }): Promise<string> {
+  async sendRawTransaction(data: { transaction: string; signature: string }): Promise<string> {
     try {
       if (!this.chain.provider) {
         throw new Error('Chain provider not available');
       }
 
-      const transactionBlock = await this.convertToSuiTransactionBlock(data.transaction);
-
-      console.log('transactionBlock: ', this.chain.provider);
-
       const result = await this.chain.provider.executeTransactionBlock({
-        transactionBlock: transactionBlock as any,
+        transactionBlock: fromBase64(data.transaction),
         signature: data.signature,
       });
       console.log('result: ', result);

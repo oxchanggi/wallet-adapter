@@ -65,6 +65,7 @@ export const SimpleWalletConnect: React.FC = () => {
     data: '0x',
   });
   const [rawTransaction, setRawTransaction] = useState<string>('');
+  const [signature, setSignature] = useState<string>('');
   const [operationResult, setOperationResult] = useState<{
     type: string;
     data: string;
@@ -221,7 +222,7 @@ export const SimpleWalletConnect: React.FC = () => {
         const signedTx = await wallet.signTransaction(transaction);
         setOperationResult({
           type: 'success',
-          data: `Transaction signed successfully! Signed TX: ${signedTx}`,
+          data: `Transaction signed successfully! Signed TX: ${(signedTx as any).transaction}. Signature: ${(signedTx as any).signature}`,
         });
       } else {
         // EVM transaction
@@ -321,7 +322,12 @@ export const SimpleWalletConnect: React.FC = () => {
 
     try {
       setOperationResult({ type: 'loading', data: 'Sending raw transaction...' });
-      const txHash = await wallet.sendRawTransaction(rawTransaction);
+      let txHash;
+      if (isSui) {
+        txHash = await wallet.sendRawTransaction({ transaction: rawTransaction, signature: signature });
+      } else {
+        txHash = await wallet.sendRawTransaction(rawTransaction);
+      }
       setOperationResult({
         type: 'success',
         data: `Raw transaction sent successfully! TX Hash: ${txHash}`,
@@ -414,6 +420,7 @@ export const SimpleWalletConnect: React.FC = () => {
 
   // Determine if the selected connector is Solana
   const isSolana = wallet?.chain.chainType === ChainType.SOLANA;
+  const isSui = wallet?.chain.chainType === ChainType.SUI;
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -808,6 +815,25 @@ export const SimpleWalletConnect: React.FC = () => {
                 value={rawTransaction}
                 onChange={(e) => setRawTransaction(e.target.value)}
                 multiline
+                rows={2}
+                placeholder={
+                  isSolana
+                    ? 'AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAEDyf2cSYf0apvP4BeGu/HH2cIrF+7QFtYEEvH4Q9t+mQAAAAAAAAAAqcdptXNWyMB3SgeuXbXgQvdJMr2EGqCbTjLrLfP8JEUBAgIAAQwCAAAAKgAAAAAAAAA='
+                    : '0x89205a3a3b2a136b355f67371d9153afa4050e13c8458cd50a1e40783d37d39b...'
+                }
+                variant="outlined"
+                margin="normal"
+                InputProps={{
+                  style: { fontFamily: 'monospace' },
+                }}
+              />
+              <TextField
+                fullWidth
+                label="Signature Transaction (base64)"
+                value={signature}
+                onChange={(e) => setSignature(e.target.value)}
+                multiline
+                disabled={!isSui}
                 rows={2}
                 placeholder={
                   isSolana
