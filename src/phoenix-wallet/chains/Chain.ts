@@ -19,8 +19,9 @@ export interface IChain<T> extends IChainConfig {
 }
 
 export enum ChainType {
-  EVM = 'EVM',
-  SOLANA = 'SOLANA',
+  EVM = "EVM",
+  SOLANA = "SOLANA",
+  SUI = "SUI",
 }
 
 export abstract class Chain<T> implements IChain<T> {

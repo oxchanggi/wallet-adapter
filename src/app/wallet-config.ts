@@ -11,6 +11,7 @@ import {
   SolanaCluster,
   CoinbaseEvmConnector,
   RabbyEvmConnector,
+  PhantomSuiConnector,
 } from '@phoenix-wallet/wallet-adapter';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom';
 
@@ -32,6 +33,9 @@ export const defaultConnectors = [
 
   // Solana
   new SolanaConnector(dappMetadata, new PhantomWalletAdapter(), SolanaCluster.DEVNET),
+
+  // Sui
+  new PhantomSuiConnector(dappMetadata),
 ];
 
 export const chainConfigs = [
@@ -94,5 +98,16 @@ export const chainConfigs = [
     chainId: 101,
     nativeCurrency: { name: 'Solana', symbol: 'SOL', decimals: 9 },
     chainType: ChainType.SOLANA,
+  },
+  // sui mainnet
+  {
+    id: 'sui:mainnet',
+    name: 'Sui',
+    publicRpcUrl: 'https://fullnode.mainnet.sui.io:443',
+    privateRpcUrl: 'https://fullnode.mainnet.sui.io:443',
+    explorerUrl: 'https://suiscan.io',
+    chainId: 646,
+    nativeCurrency: { name: 'Sui', symbol: 'SUI', decimals: 9 },
+    chainType: ChainType.SUI,
   },
 ];
