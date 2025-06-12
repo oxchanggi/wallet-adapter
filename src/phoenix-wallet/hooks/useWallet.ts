@@ -389,7 +389,7 @@ export function useWallet(connectorId: string): WalletState {
     if (connector.chainType === ChainType.SUI) {
       const chain = chainConfigs.find((c) => c.id === chainId && c.chainType === ChainType.SUI);
       if (!chain) {
-        console.warn(`No chain config found for chainId: ${chainId}`);
+        console.warn(`No chain config found for chainId: ${chainId}, Wallet will not be initialized`);
         // Attempt to get the chain ID again if it's not available
         if (!chainId) {
           connector

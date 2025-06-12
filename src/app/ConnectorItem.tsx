@@ -67,6 +67,7 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({ connectorId }) => 
   console.log('isConnecting', isConnecting);
   console.log('isDisconnected', isDisconnected);
   console.log('hasError', hasError);
+  console.log('wallet', wallet);
 
   const { chainConfigs } = useWalletConnectors();
 

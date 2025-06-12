@@ -32,6 +32,10 @@ export * from "./connectors/sui/PhantomSuiConnector";
 export * from './connectors/evm/RabbyEvmConnector';
 export * from './connectors/evm/CoinbaseEvmConnector';
 export * from './connectors/solana/SolanaConnector';
+export * from './connectors/sui/SuiConnector';      
+export * from './connectors/sui/PhantomSuiConnector';
+export * from './connectors/sui/SuiWalletClient';
+
 export * from './connectors/types';
 export * from './connectors/index';
 
