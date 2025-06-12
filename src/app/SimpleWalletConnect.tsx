@@ -87,7 +87,7 @@ export const SimpleWalletConnect: React.FC = () => {
   const { wallet, isConnected, address, chainId } = useWallet(selectedConnectorId);
 
   // Initialize token contract
-  const { contract: tokenContract, error: tokenContractError } = useTokenContract({
+  const { getContract} = useTokenContract({
     contractAddress: tokenAddress,
     chainId: chainId || '',
     wallet: wallet,
@@ -337,6 +337,7 @@ export const SimpleWalletConnect: React.FC = () => {
 
   // Token Contract Functions
   const handleGetTokenInfo = async () => {
+    const tokenContract = getContract();
     if (!tokenContract || !address) return;
     console.log(tokenContract, address);
 
@@ -374,6 +375,7 @@ export const SimpleWalletConnect: React.FC = () => {
   };
 
   const handleTransferToken = async () => {
+    const tokenContract = getContract();
     if (!tokenContract || !tokenRecipient || !tokenAmount) return;
 
     try {
@@ -675,7 +677,7 @@ export const SimpleWalletConnect: React.FC = () => {
                       color="primary"
                       startIcon={<Send />}
                       onClick={handleTransferToken}
-                      disabled={!tokenRecipient || !tokenAmount || !tokenContract}
+                      disabled={!tokenRecipient || !tokenAmount || !getContract()}
                       sx={{ minWidth: { md: '200px' } }}
                     >
                       Transfer Tokens
