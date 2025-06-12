@@ -43,6 +43,7 @@ interface ConnectorItemProps {
 
 export const ConnectorItem: React.FC<ConnectorItemProps> = ({ connectorId }) => {
   const {
+    isWalletReady,
     connector,
     status,
     isConnected,
@@ -57,6 +58,15 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({ connectorId }) => 
     switchChain,
     wallet,
   } = useWallet(connectorId);
+
+  console.log('connectorId', connectorId);
+  console.log('connector', connector);
+  console.log('status', status);
+  console.log('isConnected', isConnected);
+  console.log('isWalletReady', isWalletReady);
+  console.log('isConnecting', isConnecting);
+  console.log('isDisconnected', isDisconnected);
+  console.log('hasError', hasError);
 
   const { chainConfigs } = useWalletConnectors();
 
