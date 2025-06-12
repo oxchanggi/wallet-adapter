@@ -29,11 +29,43 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
 
   // Initialize connector statuses
   useEffect(() => {
-    const initialStatuses: { [key: string]: ConnectorStatus } = {};
-    connectors.forEach((connector) => {
-      initialStatuses[connector.id] = ConnectorStatus.DISCONNECTED;
-    });
-    setConnectorStatuses(initialStatuses);
+    const initializeConnectorStatuses = async () => {
+      const initialStatuses: { [key: string]: ConnectorStatus } = {};
+      
+      // First, set all connectors to a default DISCONNECTED state
+      connectors.forEach((connector) => {
+        initialStatuses[connector.id] = ConnectorStatus.DISCONNECTED;
+      });
+      
+      // Set initial statuses first to avoid UI flicker
+      setConnectorStatuses(initialStatuses);
+      
+      // Then check for actual connection states asynchronously
+      if (connectors.length > 0) {
+        for (const connector of connectors) {
+          try {
+            const isConnected = await connector.isConnected();
+            if (isConnected) {
+              // Update with the real status
+              setConnectorStatuses(prev => ({
+                ...prev,
+                [connector.id]: ConnectorStatus.CONNECTED
+              }));
+              
+              // Also add to active connectors
+              setActiveConnectors(prev => ({
+                ...prev,
+                [connector.id]: connector
+              }));
+            }
+          } catch (error) {
+            console.error(`Error checking connection status for ${connector.id}:`, error);
+          }
+        }
+      }
+    };
+    
+    initializeConnectorStatuses();
   }, [connectors]);
 
   // Auto reconnect wallets from last session if enabled

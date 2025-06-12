@@ -1,6 +1,6 @@
 {
   "name": "@phoenix-wallet/wallet-adapter",
-  "version": "0.1.1",
+  "version": "0.1.5",
   "description": "A React library for connecting to multiple blockchain wallets with a unified interface",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
