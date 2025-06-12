@@ -71,34 +71,31 @@ export function useWallet(connectorId: string): WalletState {
   useEffect(() => {
     const initializeWalletState = async () => {
       if (!connector || initializedRef.current) return;
-      
+
       initializedRef.current = true;
-      
+
       try {
         // Check if wallet is already connected
         const isConnectedResult = await connector.isConnected();
-        
+
         if (isConnectedResult) {
-          console.log(`Initializing wallet state for ${connectorId}, found active connection`);
-          
           // Get connected addresses
           const addresses = await connector.getConnectedAddresses();
           if (addresses && addresses.length > 0) {
             setAddress(addresses[0]);
-            
+
             // Get chain ID
             try {
               const currentChainId = await connector.getChainId();
               if (currentChainId) {
                 setChainId(currentChainId);
-                console.log(`Initialized wallet ${connectorId} with address ${addresses[0]} on chain ${currentChainId}`);
               }
             } catch (chainError) {
               console.error(`Connected to ${connectorId} but failed to get chain ID:`, chainError);
             }
           }
         }
-        
+
         // Mark initialization as complete
         setIsInitialized(true);
       } catch (error) {
@@ -107,7 +104,7 @@ export function useWallet(connectorId: string): WalletState {
         setIsInitialized(true);
       }
     };
-    
+
     initializeWalletState();
   }, [connector, connectorId]);
 
@@ -126,7 +123,6 @@ export function useWallet(connectorId: string): WalletState {
           const isConnectedResult = await connector.isConnected();
 
           if (isConnectedResult) {
-            console.log(`Auto-reconnecting to ${connectorId}...`);
             setTransitionalStatus(ConnectorStatus.CONNECTING);
 
             // Call the connector's connect method
@@ -137,16 +133,12 @@ export function useWallet(connectorId: string): WalletState {
 
               if (result.chainId) {
                 setChainId(result.chainId);
-                console.log(`Successfully reconnected to ${connectorId} and chain ${result.chainId}`);
               } else {
                 // If chain ID is not available in the result, try to get it from the connector
                 try {
                   const chainIdResult = await connector.getChainId();
                   if (chainIdResult) {
                     setChainId(chainIdResult);
-                    console.log(`Successfully reconnected to ${connectorId} and retrieved chain ${chainIdResult}`);
-                  } else {
-                    console.log(`Successfully reconnected to ${connectorId} but couldn't determine chain ID`);
                   }
                 } catch (chainError) {
                   console.error(`Connected to ${connectorId} but failed to get chain ID:`, chainError);
@@ -197,7 +189,6 @@ export function useWallet(connectorId: string): WalletState {
   useWalletConnectorEvent({
     onConnect: (cId, addr, chain) => {
       if (cId === connectorId) {
-        console.log(`Connector ${cId} connected with address ${addr} on chain ${chain || 'unknown'}`);
         // Clear transitional status and set address and chainId
         setTransitionalStatus(null);
         setAddress(addr);
@@ -208,7 +199,6 @@ export function useWallet(connectorId: string): WalletState {
     },
     onDisconnect: (cId) => {
       if (cId === connectorId) {
-        console.log(`Connector ${cId} disconnected`);
         // Clear transitional status, address, and chainId
         setTransitionalStatus(null);
         setAddress(null);
@@ -217,7 +207,6 @@ export function useWallet(connectorId: string): WalletState {
     },
     onAccountChanged: (cId, addresses) => {
       if (cId === connectorId) {
-        console.log(`Connector ${cId} accounts changed to ${addresses.join(', ')}`);
         if (addresses.length > 0) {
           setAddress(addresses[0]);
         } else {
@@ -227,7 +216,6 @@ export function useWallet(connectorId: string): WalletState {
     },
     onChainChanged: (cId, chain) => {
       if (cId === connectorId) {
-        console.log(`Connector ${cId} chain changed to ${chain}`);
         setChainId(chain);
       }
     },
@@ -251,15 +239,11 @@ export function useWallet(connectorId: string): WalletState {
 
       // Only process result if this is still the most recent connection attempt
       if (currentAttempt === connectionAttemptRef.current) {
-        console.log(`Connection result for ${connectorId}:`, result);
-
         // If result has an address but the status hasn't been updated via event yet,
         // we'll manually trigger a status change after a short delay
         if (result?.address) {
-          console.log('Run here:', transitionalStatus);
           // Set a timeout to ensure the status gets updated even if event doesn't fire
           setTimeout(() => {
-            console.log('Transition status:', transitionalStatus);
             if (transitionalStatus === ConnectorStatus.CONNECTING) {
               setTransitionalStatus(null);
               setAddress(result.address);
@@ -267,7 +251,6 @@ export function useWallet(connectorId: string): WalletState {
               // Also set chainId if available
               if (result.chainId) {
                 setChainId(result.chainId);
-                console.log(`Setting chain ID to ${result.chainId}`);
               } else {
                 // If chain ID is not available in the result, try to get it from the connector
                 connector
@@ -275,7 +258,6 @@ export function useWallet(connectorId: string): WalletState {
                   .then((chainIdResult) => {
                     if (chainIdResult) {
                       setChainId(chainIdResult);
-                      console.log(`Got chain ID from connector: ${chainIdResult}`);
                     }
                   })
                   .catch((error) => {
@@ -396,7 +378,6 @@ export function useWallet(connectorId: string): WalletState {
             .getChainId()
             .then((newChainId) => {
               if (newChainId) {
-                console.log(`Updated chain ID to: ${newChainId}`);
                 setChainId(newChainId);
               }
             })
@@ -410,7 +391,6 @@ export function useWallet(connectorId: string): WalletState {
       return new SuiWallet(address, suiChain, connector as SuiConnector, connector.createWalletClient(suiChain));
     }
 
-
     if (connector.chainType === ChainType.SOLANA) {
       // Find a chain config matching the current chainId
       const chain = chainConfigs.find((c) => c.id === chainId && c.chainType === ChainType.SOLANA);
@@ -423,7 +403,6 @@ export function useWallet(connectorId: string): WalletState {
             .getChainId()
             .then((newChainId) => {
               if (newChainId) {
-                console.log(`Updated chain ID to: ${newChainId}`);
                 setChainId(newChainId);
               }
             })
@@ -450,7 +429,7 @@ export function useWallet(connectorId: string): WalletState {
   const isConnecting = status === ConnectorStatus.CONNECTING;
   const isDisconnected = status === ConnectorStatus.DISCONNECTED;
   const hasError = status === ConnectorStatus.ERROR;
-  
+
   // Determine if wallet is fully ready for use
   const isWalletReady = useMemo(() => {
     // Wallet is ready when:
@@ -459,16 +438,8 @@ export function useWallet(connectorId: string): WalletState {
     // 3. We have a valid address
     // 4. We have a valid chainId
     // 5. The wallet object is instantiated
-    
-    return (
-      isInitialized &&
-      isConnected &&
-      !!address &&
-      !!chainId &&
-      !!wallet &&
-      !isConnecting &&
-      !hasError
-    );
+
+    return isInitialized && isConnected && !!address && !!chainId && !!wallet && !isConnecting && !hasError;
   }, [isInitialized, isConnected, address, chainId, wallet, isConnecting, hasError]);
 
   return {
