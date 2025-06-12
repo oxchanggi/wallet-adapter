@@ -130,6 +130,17 @@ export abstract class SuiConnector extends Connector {
     }
   }
 
+  disconnectStorage(): void {
+    if (typeof localStorage !== 'undefined') {
+      if (this.storageConnectionStatusKey) {
+        localStorage.removeItem(this.storageConnectionStatusKey);
+      }
+      if (this.storageAddressKey) {
+        localStorage.removeItem(this.storageAddressKey);
+      }
+    }
+  }
+
   // Get current provider (public getter for wallet access)
   getProvider(): SuiProvider | null {
     return this.provider;
@@ -148,8 +159,6 @@ export abstract class SuiConnector extends Connector {
   //This function should check if the wallet is connected to the chain, and when application is reloaded, it should check if the wallet is connected to the chain
   async isConnected(): Promise<boolean> {
     try {
-      await this.init();
-
       if (this.storageConnectionStatusKey) {
         const storedStatus = localStorage.getItem(this.storageConnectionStatusKey);
         if (!storedStatus) {

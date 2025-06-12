@@ -64,6 +64,8 @@ export class PhantomSuiConnector extends SuiConnector {
       }
 
       this.provider = this.suiProvider;
+      await this.init();
+
 
       // Request connection
       const connectResult = await this.suiProvider.requestAccount();
@@ -96,6 +98,7 @@ export class PhantomSuiConnector extends SuiConnector {
   // Disconnect from Phantom Sui wallet
   async disconnect(): Promise<void> {
     try {
+      await this.init();
       if (this.suiProvider && 'disconnect' in this.suiProvider) {
         await this.suiProvider.disconnect();
       }
@@ -106,7 +109,7 @@ export class PhantomSuiConnector extends SuiConnector {
       this.provider = null;
       this.suiProvider = null;
 
-      // Remove event listeners
+      this.disconnectStorage();
     } catch (error) {
       console.error('Error disconnecting from Phantom Sui:', error);
       throw error;
@@ -145,7 +148,7 @@ export class PhantomSuiConnector extends SuiConnector {
 
   // Setup event listeners for Phantom Sui wallet
   async setupEventListeners(): Promise<void> {
-    if (!this.suiProvider || this.eventListenersSetup) {
+    if (!(await this.isInstalled()) || this.eventListenersSetup || !this.suiProvider) {
       return;
     }
 
@@ -185,12 +188,10 @@ export class PhantomSuiConnector extends SuiConnector {
         };
         this.handleEventConnect(event.address, this.activeChainId);
       });
-
       // Disconnect events
       this.suiProvider.on('disconnect', () => {
         this.handleDisconnect();
       });
-
       this.eventListenersSetup = true;
 
       console.log('Event listeners setup: ===================');
