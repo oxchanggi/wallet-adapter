@@ -12,6 +12,7 @@ import {
   SuiConnectResult,
   SuiWalletEventType,
 } from '../../types/sui';
+import { SuiWalletClient } from './SuiWalletClient';
 
 // Sui Provider Interface - Standard Sui Wallet Interface
 export interface SuiProvider {
@@ -24,7 +25,7 @@ export interface SuiProvider {
   getChain(): Promise<string>;
 
   // Transaction methods
-  signAndExecuteTransactionBlock(input: SuiSignAndExecuteTransactionBlockInput): Promise<SuiTransactionResponse>;
+  signAndExecuteTransaction(input: SuiSignAndExecuteTransactionBlockInput): Promise<SuiTransactionResponse>;
   signTransaction(input: SuiSignTransactionBlockInput): Promise<SuiSignedTransaction>;
   signMessage(message: Uint8Array<ArrayBufferLike>, account?: string): Promise<SuiSignedMessage>;
 
@@ -41,10 +42,23 @@ export abstract class SuiConnector extends Connector {
   protected activeAddress: string | undefined = undefined;
   protected activeChainId: string | undefined = undefined;
   protected provider: SuiProvider | null = null;
-  protected suiClient: SuiClient | null = null;
+  protected isInitialized: boolean = false;
 
   constructor(id: string, config: ConnectorConfig, dappMetadata: DappMetadata) {
     super(id, config.name, config.logo, dappMetadata);
+  }
+
+  async init(): Promise<void> {
+    if (this.isInitialized) {
+      return;
+    }
+
+    this.isInitialized = true;
+
+    this.setupEventListeners();
+
+    // Check if we have a stored connection
+    this.checkStoredConnection();
   }
 
   get chainType(): ChainType {
@@ -76,43 +90,17 @@ export abstract class SuiConnector extends Connector {
     if (this.activeChainId !== chainId) {
       this.activeChainId = chainId;
       // Update SuiClient with new network
-      if (this.suiClient && this.activeChainId) {
-        this.suiClient = this.createSuiClientForNetwork(this.activeChainId);
-      }
     }
     super.handleEventChainChanged(chainId);
   }
 
-  // Create SuiClient for specific network
-  protected createSuiClientForNetwork(chainId: string): SuiClient {
-    let rpcUrl: string;
-
-    // Map Sui chain identifiers to RPC URLs
-    switch (chainId.toLowerCase()) {
-      case 'sui:mainnet':
-        rpcUrl = 'https://fullnode.mainnet.sui.io:443';
-        break;
-      case 'sui:testnet':
-        rpcUrl = 'https://fullnode.testnet.sui.io:443';
-        break;
-      case 'sui:devnet':
-        rpcUrl = 'https://fullnode.devnet.sui.io:443';
-        break;
-      default:
-        // Default to devnet for unknown chains
-        rpcUrl = 'https://fullnode.devnet.sui.io:443';
-    }
-
-    return new SuiClient({ url: rpcUrl });
-  }
-
   // Create wallet client for Sui operations (similar to EvmConnector.createWalletClient)
-  createWalletClient(chain: SuiChain): SuiProvider {
+  createWalletClient(chain: SuiChain): SuiWalletClient {
     if (!this.provider) {
       throw new Error('Sui provider not available');
     }
 
-    return this.provider;
+    return new SuiWalletClient(this.provider);
   }
 
   // Abstract methods that must be implemented by concrete connectors
@@ -123,32 +111,24 @@ export abstract class SuiConnector extends Connector {
   abstract setupEventListeners(): Promise<void>;
   abstract isInstalled(): Promise<boolean>;
 
-  // Sui-specific helper methods
-  protected async getNetworkFromChainId(chainId: string): Promise<'mainnet' | 'testnet' | 'devnet'> {
-    const networkPart = chainId.toLowerCase().split(':')[1];
-    switch (networkPart) {
-      case 'mainnet':
-      case 'testnet':
-      case 'devnet':
-        return networkPart;
-      default:
-        return 'devnet'; // Default fallback
-    }
-  }
+  storageConnect(address: string, chainId: string): void {
+    this.activeAddress = address;
+    this.activeChainId = chainId;
 
-  // Get current Sui client instance
-  protected getSuiClient(): SuiClient | null {
-    return this.suiClient;
+    // Store connection status in localStorage
+    if (typeof localStorage !== 'undefined') {
+      if (this.storageConnectionStatusKey) {
+        localStorage.setItem(this.storageConnectionStatusKey, 'connected');
+      }
+      if (this.storageAddressKey && this.activeAddress) {
+        localStorage.setItem(this.storageAddressKey, this.activeAddress);
+      }
+    }
   }
 
   // Get current provider (public getter for wallet access)
   getProvider(): SuiProvider | null {
     return this.provider;
-  }
-
-  // Check if currently connected
-  protected isConnected(): boolean {
-    return !!(this.activeAddress && this.provider);
   }
 
   // Get active account address
@@ -159,6 +139,55 @@ export abstract class SuiConnector extends Connector {
   // Get active chain ID
   protected getActiveChainId(): string | undefined {
     return this.activeChainId;
+  }
+
+  //This function should check if the wallet is connected to the chain, and when application is reloaded, it should check if the wallet is connected to the chain
+  async isConnected(): Promise<boolean> {
+    try {
+      await this.init();
+
+      if (this.storageConnectionStatusKey) {
+        const storedStatus = localStorage.getItem(this.storageConnectionStatusKey);
+        if (!storedStatus) {
+          return false;
+        }
+      }
+
+      if (this.activeAddress) {
+        return true;
+      }
+
+      return !!this.provider;
+    } catch (error) {
+      console.error(`Error checking if ${this.id} is connected:`, error);
+      return false;
+    }
+  }
+
+  protected get storageConnectionStatusKey(): string | null {
+    return `phoenix_${this.id}_sui_connection_status`;
+  }
+
+  protected get storageAddressKey(): string | null {
+    return `phoenix_${this.id}_sui_address`;
+  }
+
+  protected checkStoredConnection(): void {
+    if (typeof localStorage !== 'undefined' && this.storageConnectionStatusKey) {
+      const storedStatus = localStorage.getItem(this.storageConnectionStatusKey);
+      if (storedStatus === 'connected') {
+        // Check if we have a stored address
+        if (this.storageAddressKey) {
+          const storedAddress = localStorage.getItem(this.storageAddressKey);
+          if (storedAddress) {
+            this.activeAddress = storedAddress;
+            this.handleEventConnect(this.activeAddress, this.activeChainId);
+          } else {
+            localStorage.removeItem(this.storageConnectionStatusKey);
+          }
+        }
+      }
+    }
   }
 }
 

@@ -40,10 +40,10 @@ export interface SuiSignedMessage {
 
 // Sui Transaction Input Types
 export interface SuiSignAndExecuteTransactionBlockInput {
-  transactionBlock: SuiTransactionBlock;
-  chain?: string;
-  account?: string;
-  requestType?: "WaitForEffectsCert" | "WaitForLocalExecution";
+  transaction: SuiTransactionBlock;
+  networkID?: string;
+  address?: string;
+  requestType?: 'WaitForEffectsCert' | 'WaitForLocalExecution';
 }
 
 export interface SuiSignTransactionBlockInput {

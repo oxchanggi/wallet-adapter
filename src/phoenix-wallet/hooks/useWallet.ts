@@ -6,12 +6,15 @@ import { IConnector } from '../connectors/IConnector';
 import { ConnectorStatus } from '../connectors/types';
 import { useWalletConnectors } from '../contexts/WalletContext';
 import { useWalletConnectorEvent } from './useWalletConnectorEvent';
+import { IWallet } from '../wallets/IWallet';
+import { EvmWallet } from '../wallets/EvmWallet';
+import { SuiWallet } from '../wallets/SuiWallet';
+import { SuiChain } from '../chains/SuiChain';
+import { JsonRpcProvider } from 'ethers';
+import { SuiClient } from '@mysten/sui/client';
 import { SolanaChain } from '../chains/SolanaChain';
 import { Connection } from '@solana/web3.js';
 import { SolanaWallet } from '../wallets/SolanaWallet';
-import { SuiChain } from '../chains/SuiChain';
-import { EvmWallet, IWallet, SuiWallet } from '../wallets';
-import { JsonRpcProvider } from 'ethers';
 // Interface for the connector-specific return values
 interface WalletState {
   connector: IConnector | null;
@@ -359,6 +362,7 @@ export function useWallet(connectorId: string): WalletState {
       const suiChain = new SuiChain(chain.name, chain as IChain<SuiClient>);
       return new SuiWallet(address, suiChain, connector as SuiConnector, connector.createWalletClient(suiChain));
     }
+
 
     if (connector.chainType === ChainType.SOLANA) {
       // Find a chain config matching the current chainId
