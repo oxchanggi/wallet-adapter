@@ -13,6 +13,7 @@ import {
   VersionedTransaction,
   TransactionMessage,
 } from '@solana/web3.js';
+import { Transaction as SubTransaction } from '@mysten/sui/transactions';
 import React, { useState, useEffect } from 'react';
 import { ConnectorItem } from './ConnectorItem';
 import { useTokenContract } from '@/hooks/useTokenContract';
@@ -211,6 +212,17 @@ export const SimpleWalletConnect: React.FC = () => {
           data: `Transaction signed successfully! Signed TX: ${signedTx.slice(0, 30)}...`,
         });
         setRawTransaction(signedTx);
+      } else if (selectedConnectorId.includes('sui')) {
+        // create transaction transfer sui
+        const transaction = new SubTransaction();
+        const recipientAddress = transactionData.to;
+        const [coin] = transaction.splitCoins(transaction.gas, [transaction.pure.u64(transactionData.value)]);
+        transaction.transferObjects([coin], recipientAddress);
+        const signedTx = await wallet.signTransaction(transaction);
+        setOperationResult({
+          type: 'success',
+          data: `Transaction signed successfully! Signed TX: ${signedTx.slice(0, 30)}...`,
+        });
       } else {
         // EVM transaction
         const transaction: EvmTransaction = {
@@ -266,6 +278,17 @@ export const SimpleWalletConnect: React.FC = () => {
 
       if (selectedConnectorId.includes('solana')) {
         const transaction = await createSolanaTransaction();
+        const txHash = await wallet.sendTransaction(transaction);
+        setOperationResult({
+          type: 'success',
+          data: `Transaction sent successfully! TX Hash: ${txHash}`,
+        });
+      } else if (selectedConnectorId.includes('sui')) {
+        // create transaction transfer sui
+        const transaction = new SubTransaction();
+        const recipientAddress = transactionData.to;
+        const [coin] = transaction.splitCoins(transaction.gas, [transaction.pure.u64(transactionData.value)]);
+        transaction.transferObjects([coin], recipientAddress);
         const txHash = await wallet.sendTransaction(transaction);
         setOperationResult({
           type: 'success',

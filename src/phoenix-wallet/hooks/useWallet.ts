@@ -1,14 +1,17 @@
-import { JsonRpcProvider } from 'ethers';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChainType, IChain } from '../chains/Chain';
 import { EvmChain } from '../chains/EvmChain';
-import { EvmConnector, SolanaConnector } from '../connectors';
+import { EvmConnector, SolanaConnector, SuiConnector } from '../connectors';
 import { IConnector } from '../connectors/IConnector';
 import { ConnectorStatus } from '../connectors/types';
 import { useWalletConnectors } from '../contexts/WalletContext';
-import { EvmWallet } from '../wallets/EvmWallet';
-import { IWallet } from '../wallets/IWallet';
 import { useWalletConnectorEvent } from './useWalletConnectorEvent';
+import { IWallet } from '../wallets/IWallet';
+import { EvmWallet } from '../wallets/EvmWallet';
+import { SuiWallet } from '../wallets/SuiWallet';
+import { SuiChain } from '../chains/SuiChain';
+import { JsonRpcProvider } from 'ethers';
+import { SuiClient } from '@mysten/sui/client';
 import { SolanaChain } from '../chains/SolanaChain';
 import { Connection } from '@solana/web3.js';
 import { SolanaWallet } from '../wallets/SolanaWallet';
@@ -206,8 +209,10 @@ export function useWallet(connectorId: string): WalletState {
         // If result has an address but the status hasn't been updated via event yet,
         // we'll manually trigger a status change after a short delay
         if (result?.address) {
+          console.log('Run here:', transitionalStatus);
           // Set a timeout to ensure the status gets updated even if event doesn't fire
           setTimeout(() => {
+            console.log('Transition status:', transitionalStatus);
             if (transitionalStatus === ConnectorStatus.CONNECTING) {
               setTransitionalStatus(null);
               setAddress(result.address);
@@ -253,6 +258,14 @@ export function useWallet(connectorId: string): WalletState {
     try {
       // Call the connector's disconnect method
       await connector.disconnect();
+
+      // Status should be updated via event callback, but let's ensure it
+      setTimeout(() => {
+        if (status === ConnectorStatus.CONNECTED) {
+          setTransitionalStatus(ConnectorStatus.DISCONNECTED);
+          setAddress(null);
+        }
+      }, 500);
     } catch (error) {
       console.error(`Failed to disconnect from ${connectorId}:`, error);
       throw error;
@@ -318,9 +331,16 @@ export function useWallet(connectorId: string): WalletState {
     }
 
     if (connector.chainType === ChainType.EVM) {
-      // Find a chain config matching the current chainId
       const chain = chainConfigs.find((c) => c.id === chainId && c.chainType === ChainType.EVM);
+      if (!chain) {
+        return null;
+      }
+      const evmChain = new EvmChain(chain.name, chain as IChain<JsonRpcProvider>);
+      return new EvmWallet(address, evmChain, connector as EvmConnector, connector.createWalletClient(evmChain));
+    }
 
+    if (connector.chainType === ChainType.SUI) {
+      const chain = chainConfigs.find((c) => c.id === chainId && c.chainType === ChainType.SUI);
       if (!chain) {
         console.warn(`No chain config found for chainId: ${chainId}`);
         // Attempt to get the chain ID again if it's not available
@@ -339,10 +359,10 @@ export function useWallet(connectorId: string): WalletState {
         }
         return null;
       }
-
-      const evmChain = new EvmChain(chain.name, chain as IChain<JsonRpcProvider>);
-      return new EvmWallet(address, evmChain, connector as EvmConnector, connector.createWalletClient(evmChain));
+      const suiChain = new SuiChain(chain.name, chain as IChain<SuiClient>);
+      return new SuiWallet(address, suiChain, connector as SuiConnector, connector.createWalletClient(suiChain));
     }
+
 
     if (connector.chainType === ChainType.SOLANA) {
       // Find a chain config matching the current chainId
