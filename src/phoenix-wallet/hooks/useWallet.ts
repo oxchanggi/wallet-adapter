@@ -24,6 +24,7 @@ interface WalletState {
   isDisconnected: boolean;
   hasError: boolean;
   isInstalled: boolean | null;
+  isWalletReady: boolean;
   address: string | null;
   chainId: string | null;
   connect: () => Promise<any>;
@@ -47,10 +48,12 @@ export function useWallet(connectorId: string): WalletState {
   const [address, setAddress] = useState<string | null>(null);
   const [chainId, setChainId] = useState<string | null>(null);
   const [isInstalled, setIsInstalled] = useState<boolean | null>(null);
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
 
   // Track connection attempts to prevent race conditions
   const connectionAttemptRef = useRef<number>(0);
   const hasAttemptedReconnect = useRef<boolean>(false);
+  const initializedRef = useRef<boolean>(false);
 
   // Get the connector instance
   const connector = useMemo(
@@ -63,6 +66,50 @@ export function useWallet(connectorId: string): WalletState {
     if (transitionalStatus) return transitionalStatus;
     return connectorStatuses[connectorId] || ConnectorStatus.DISCONNECTED;
   }, [connectorStatuses, connectorId, transitionalStatus]);
+
+  // Initialize wallet state on first load
+  useEffect(() => {
+    const initializeWalletState = async () => {
+      if (!connector || initializedRef.current) return;
+      
+      initializedRef.current = true;
+      
+      try {
+        // Check if wallet is already connected
+        const isConnectedResult = await connector.isConnected();
+        
+        if (isConnectedResult) {
+          console.log(`Initializing wallet state for ${connectorId}, found active connection`);
+          
+          // Get connected addresses
+          const addresses = await connector.getConnectedAddresses();
+          if (addresses && addresses.length > 0) {
+            setAddress(addresses[0]);
+            
+            // Get chain ID
+            try {
+              const currentChainId = await connector.getChainId();
+              if (currentChainId) {
+                setChainId(currentChainId);
+                console.log(`Initialized wallet ${connectorId} with address ${addresses[0]} on chain ${currentChainId}`);
+              }
+            } catch (chainError) {
+              console.error(`Connected to ${connectorId} but failed to get chain ID:`, chainError);
+            }
+          }
+        }
+        
+        // Mark initialization as complete
+        setIsInitialized(true);
+      } catch (error) {
+        console.error(`Error initializing wallet state for ${connectorId}:`, error);
+        // Even on error, mark as initialized to prevent infinite retry loops
+        setIsInitialized(true);
+      }
+    };
+    
+    initializeWalletState();
+  }, [connector, connectorId]);
 
   // Attempt auto-reconnect if needed
   useEffect(() => {
@@ -342,7 +389,7 @@ export function useWallet(connectorId: string): WalletState {
     if (connector.chainType === ChainType.SUI) {
       const chain = chainConfigs.find((c) => c.id === chainId && c.chainType === ChainType.SUI);
       if (!chain) {
-        console.warn(`No chain config found for chainId: ${chainId}`);
+        console.warn(`No chain config found for chainId: ${chainId}, Wallet will not be initialized`);
         // Attempt to get the chain ID again if it's not available
         if (!chainId) {
           connector
@@ -403,6 +450,26 @@ export function useWallet(connectorId: string): WalletState {
   const isConnecting = status === ConnectorStatus.CONNECTING;
   const isDisconnected = status === ConnectorStatus.DISCONNECTED;
   const hasError = status === ConnectorStatus.ERROR;
+  
+  // Determine if wallet is fully ready for use
+  const isWalletReady = useMemo(() => {
+    // Wallet is ready when:
+    // 1. Initialization is complete
+    // 2. Wallet is connected
+    // 3. We have a valid address
+    // 4. We have a valid chainId
+    // 5. The wallet object is instantiated
+    
+    return (
+      isInitialized &&
+      isConnected &&
+      !!address &&
+      !!chainId &&
+      !!wallet &&
+      !isConnecting &&
+      !hasError
+    );
+  }, [isInitialized, isConnected, address, chainId, wallet, isConnecting, hasError]);
 
   return {
     connector,
@@ -413,6 +480,7 @@ export function useWallet(connectorId: string): WalletState {
     isDisconnected,
     hasError,
     isInstalled,
+    isWalletReady,
     address,
     chainId,
     connect,

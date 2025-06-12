@@ -1,3 +1,4 @@
+import { SuiClient } from '@mysten/sui/client';
 import { IChain } from '../../chains';
 import { DappMetadata } from '../types';
 import { SuiConnector, SuiProvider } from './SuiConnector';
@@ -7,7 +8,8 @@ export class PhantomSuiConnector extends SuiConnector {
     throw new Error('Method not implemented.');
   }
   createPublicClient(chain: IChain<any>) {
-    throw new Error('Method not implemented.');
+    const client = new SuiClient({url: chain.provider})
+    return client;
   }
   switchChainId(chainId: string): Promise<void> {
     throw new Error('Method not implemented.');

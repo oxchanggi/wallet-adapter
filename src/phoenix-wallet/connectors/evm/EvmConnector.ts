@@ -253,7 +253,9 @@ export abstract class EvmConnector extends Connector {
   }
 
   async switchChainId(chainId: string): Promise<void> {
-    await this.provider?.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: chainId }] });
+    //convert chainId to hex
+    const chainIdHex = `0x${parseInt(chainId).toString(16)}`;
+    await this.provider?.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: chainIdHex }] });
   }
 
   async addChain(chain: EvmChain): Promise<void> {

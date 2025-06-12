@@ -2,6 +2,8 @@
 
 A powerful React library for seamlessly connecting to multiple blockchain wallets with a unified interface.
 
+**Demo:** [https://phoenix-wallet-adapter-demo.pages.dev/](https://phoenix-wallet-adapter-demo.pages.dev/)
+
 ## Installation
 
 ```bash
