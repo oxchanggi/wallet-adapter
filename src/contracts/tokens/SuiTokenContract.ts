@@ -3,8 +3,7 @@ import { ITokenContract, ResponseTransacton } from './TokenContract';
 
 import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
 import { Transaction, type TransactionObjectArgument } from '@mysten/sui/transactions';
-import { normalizeStructTag, toBase64 } from '@mysten/sui/utils';
-import { VersionedTransaction } from '@solana/web3.js';
+import { normalizeStructTag } from '@mysten/sui/utils';
 
 export const checkAndSplitCoin = async (
   client: SuiClient,
@@ -20,7 +19,6 @@ export const checkAndSplitCoin = async (
     coinType !== '0000000000000000000000000000000000000000000000000000000000000002::sui::SUI'
   ) {
     const userCoins = await client.getCoins({ owner: sender, coinType });
-    console.log('userCoins: ', userCoins);
     if (userCoins.data.length === 0) {
       throw new Error(`No coins found for ${coinType}`);
     }
@@ -101,14 +99,11 @@ class TokenSdk {
     return this.metadata.symbol;
   }
 
-  async getTotalSupply(): Promise<{ amount: string; uiAmount: string }> {
+  async getTotalSupply(): Promise<string> {
     const result = await this.suiClient.getTotalSupply({
       coinType: this.tokenAddress,
     });
-    return {
-      amount: result.value,
-      uiAmount: (parseInt(result.value) / Math.pow(10, await this.getDecimals())).toString(),
-    };
+    return result.value;
   }
 
   async getBalance(owner: string): Promise<{ amount: string; uiAmount: string }> {
@@ -132,9 +127,9 @@ class TokenSdk {
 
     txb.transferObjects([coin], to);
 
-    const txBytes = await txb.build({ client: this.suiClient });
+    // const txBytes = await txb.build({ client: this.suiClient });
 
-    return { transaction: toBase64(txBytes) };
+    return { transaction: txb };
   }
 }
 
@@ -144,7 +139,7 @@ export class SuiTokenContract extends SuiContract<TokenSdk> implements ITokenCon
     super(suiClient, tokenAddress, sdk);
   }
 
-  getAllowance(address: string, spender: string): Promise<string> {
+  getAllowance(): Promise<string> {
     throw new Error('Method not supported.');
   }
 
@@ -157,30 +152,39 @@ export class SuiTokenContract extends SuiContract<TokenSdk> implements ITokenCon
   }
 
   async getTotalSupply(): Promise<string> {
-    return this.sdk.getTotalSupply();
+    const result = await this.sdk.getTotalSupply();
+    return result;
   }
 
   async getBalance(address: string): Promise<{ amount: string; uiAmount: string }> {
     const amount = await this.sdk.getBalance(address);
     const decimals = await this.getDecimals();
-    const uiAmount = (parseInt(amount) / Math.pow(10, decimals)).toString();
-    return { amount, uiAmount };
+    const uiAmount = (parseInt(amount.amount) / Math.pow(10, decimals)).toString();
+
+    return {
+      amount: amount.amount,
+      uiAmount,
+    };
   }
 
   async transfer(to: string, amount: string): Promise<ResponseTransacton> {
     try {
-      // const transaction = await this.sdk.buildTransferTx(this.wallet.address, to, amount);
-    } catch (error) {
-      throw error;
-    }
-  }
+      if (!this.wallet) {
+        throw new Error('Wallet not found');
+      }
 
-  async signAndSendTransaction(transaction: VersionedTransaction): Promise<string> {
-    try {
-      // const result = await this.suiClient.signAndExecuteTransactionBlock({
-      //   transactionBlock: transaction,
-      //   account: this.wallet.address,
-      // });
+      const transaction = await this.sdk.buildTransferTx(this.wallet.address, to, amount);
+
+      const signedTransaction = await this.wallet.signTransaction(transaction);
+
+      const txHash = await this.wallet.sendRawTransaction(signedTransaction);
+
+      return {
+        txHash: txHash,
+        wait: () => {
+          return this.waitTransaction(txHash);
+        },
+      };
     } catch (error) {
       throw error;
     }
