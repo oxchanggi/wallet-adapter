@@ -209,7 +209,7 @@ export const SimpleWalletConnect: React.FC = () => {
         const signedTx = await wallet.signTransaction(transaction);
         setOperationResult({
           type: 'success',
-          data: `Transaction signed successfully! Signed TX: ${signedTx.slice(0, 30)}...`,
+          data: `Transaction signed successfully! Signed TX: ${signedTx}`,
         });
         setRawTransaction(signedTx);
       } else if (selectedConnectorId.includes('sui')) {
@@ -221,7 +221,7 @@ export const SimpleWalletConnect: React.FC = () => {
         const signedTx = await wallet.signTransaction(transaction);
         setOperationResult({
           type: 'success',
-          data: `Transaction signed successfully! Signed TX: ${signedTx.slice(0, 30)}...`,
+          data: `Transaction signed successfully! Signed TX: ${signedTx}`,
         });
       } else {
         // EVM transaction
@@ -233,7 +233,7 @@ export const SimpleWalletConnect: React.FC = () => {
         const signedTx = await wallet.signTransaction(transaction);
         setOperationResult({
           type: 'success',
-          data: `Transaction signed successfully! Signed TX: ${signedTx.slice(0, 30)}...`,
+          data: `Transaction signed successfully! Signed TX: ${signedTx}`,
         });
         setRawTransaction(signedTx);
       }

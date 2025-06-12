@@ -28,7 +28,7 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
   }
 
   // Sign a transaction block without executing it
-  async signTransaction(transaction: SuiTransaction): Promise<string> {
+  async signTransaction(transaction: SuiTransaction): Promise<{ transaction: SuiTransaction; signature: string }> {
     try {
       // Get the provider from connector
       if (!this.walletClient) {
@@ -44,7 +44,7 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
         networkID: this.chain.id,
       });
 
-      return signedTransaction.signature;
+      return { transaction: transaction, signature: signedTransaction.signature };
     } catch (error) {
       console.error('Error signing Sui transaction:', error);
       throw error;
@@ -97,17 +97,21 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
   }
 
   // Send a pre-signed transaction
-  async sendRawTransaction(signedTransactionBytes: string): Promise<string> {
+  async sendRawTransaction(data: { transaction: SuiTransaction; signature: string }): Promise<string> {
     try {
       if (!this.chain.provider) {
         throw new Error('Chain provider not available');
       }
 
+      const transactionBlock = await this.convertToSuiTransactionBlock(data.transaction);
+
+      console.log('transactionBlock: ', this.chain.provider);
+
       const result = await this.chain.provider.executeTransactionBlock({
-        transactionBlock: signedTransactionBytes,
-        signature: signedTransactionBytes,
-        requestType: 'WaitForEffectsCert',
+        transactionBlock: transactionBlock as any,
+        signature: data.signature,
       });
+      console.log('result: ', result);
 
       return result.digest;
     } catch (error) {
@@ -121,7 +125,7 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
     const signedTransactions: string[] = [];
     for (const transaction of transactions) {
       const signed = await this.signTransaction(transaction);
-      signedTransactions.push(signed);
+      signedTransactions.push(signed.signature);
     }
     return signedTransactions;
   }

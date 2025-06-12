@@ -6,10 +6,10 @@ export interface IWallet<T, K extends Chain<any>, Q extends IConnector, M> {
   connector: Q;
   _walletClient: M;
   signMessage(message: string): Promise<string>;
-  signTransaction(transaction: T): Promise<string>;
+  signTransaction(transaction: T): Promise<string | { transaction: T; signature: string }>;
   sendTransaction(transaction: T): Promise<string>;
-  sendRawTransaction(transaction: string): Promise<string>;
-  signAllTransactions(transactions: T[]): Promise<string[]>;
+  sendRawTransaction(data: string | { transaction: T; signature: string }): Promise<string>;
+  signAllTransactions(transactions: T[]): Promise<(string | { transaction: T; signature: string })[]>;
   getBalance(): Promise<{ amount: string; uiAmount: string; decimals: number; symbol: string; name: string }>;
   get address(): string;
   get walletClient(): M;
@@ -27,10 +27,10 @@ export abstract class Wallet<T, K extends Chain<any>, Q extends IConnector, M> i
     this._walletClient = walletClient;
   }
   abstract signMessage(message: string): Promise<string>;
-  abstract signTransaction(transaction: T): Promise<string>;
+  abstract signTransaction(transaction: T): Promise<string | { transaction: T; signature: string }>;
   abstract sendTransaction(transaction: T): Promise<string>;
-  abstract sendRawTransaction(transaction: string): Promise<string>;
-  abstract signAllTransactions(transactions: T[]): Promise<string[]>;
+  abstract sendRawTransaction(data: string | { transaction: T; signature: string }): Promise<string>;
+  abstract signAllTransactions(transactions: T[]): Promise<(string | { transaction: T; signature: string })[]>;
   abstract getBalance(): Promise<{ amount: string; uiAmount: string; decimals: number; symbol: string; name: string }>;
   abstract get address(): string;
   get walletClient(): M {
