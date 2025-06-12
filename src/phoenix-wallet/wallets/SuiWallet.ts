@@ -31,17 +31,17 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
   async signTransaction(transaction: SuiTransaction): Promise<string> {
     try {
       // Get the provider from connector
-      if (!this.suiProvider) {
-        throw new Error('Sui provider not available');
+      if (!this.walletClient) {
+        throw new Error('Sui wallet client not available');
       }
 
       const transactionBlock = await this.convertToSuiTransactionBlock(transaction);
 
       // Sign the transaction using the provider
-      const signedTransaction = await this.suiProvider.signTransaction({
+      const signedTransaction = await this.walletClient.signTransaction({
         transaction: transactionBlock,
         address: this._address,
-        networkID: this.chain.chainIdentifier,
+        networkID: this.chain.id,
       });
 
       return signedTransaction.signature;
@@ -54,11 +54,11 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
   // Sign a message
   async signMessage(message: string): Promise<string> {
     try {
-      if (!this.suiProvider) {
-        throw new Error('Sui provider not available');
+      if (!this.walletClient) {
+        throw new Error('Sui wallet client not available');
       }
 
-      const signedMessage = await this.suiProvider.signMessage(new TextEncoder().encode(message), this._address);
+      const signedMessage = await this.walletClient.signMessage(new TextEncoder().encode(message), this._address);
 
       return signedMessage.signature;
     } catch (error) {
@@ -75,17 +75,17 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
   // Execute a transaction (sign and submit)
   async sendTransaction(transaction: SuiTransaction): Promise<string> {
     try {
-      if (!this.suiProvider) {
-        throw new Error('Sui provider not available');
+      if (!this.walletClient) {
+        throw new Error('Sui wallet client not available');
       }
 
       const transactionBlock = await this.convertToSuiTransactionBlock(transaction);
 
       // Execute the transaction using the provider
-      const result = await this.suiProvider.signAndExecuteTransaction({
+      const result = await this.walletClient.signAndExecuteTransaction({
         transaction: transactionBlock,
         address: this._address,
-        networkID: this.chain.chainIdentifier,
+        networkID: this.chain.id,
         requestType: 'WaitForEffectsCert',
       });
 
@@ -99,8 +99,8 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
   // Send a pre-signed transaction
   async sendRawTransaction(signedTransactionBytes: string): Promise<string> {
     try {
-      if (!this.suiProvider) {
-        throw new Error('Sui provider not available');
+      if (!this.chain.provider) {
+        throw new Error('Chain provider not available');
       }
 
       const result = await this.chain.provider.executeTransactionBlock({
@@ -236,51 +236,6 @@ export class SuiWallet extends Wallet<SuiTransaction, SuiChain, SuiConnector, Su
       return transactions.data;
     } catch (error) {
       console.error('Error getting Sui transaction history:', error);
-      throw error;
-    }
-  }
-
-  // Create a simple transfer transaction
-  createTransferTransaction(to: string, amount: string): Transaction {
-    const tx = new Transaction();
-
-    // Split coins to get the exact amount
-    const [coin] = tx.splitCoins(tx.gas, [tx.pure.u64(amount)]);
-
-    // Transfer the coin to recipient
-    tx.transferObjects([coin], tx.pure.address(to));
-
-    return tx;
-  }
-
-  // Estimate gas for a transaction
-  async estimateGas(transaction: SuiTransaction): Promise<{
-    computationCost: string;
-    storageCost: string;
-    storageRebate: string;
-    totalGas: string;
-  }> {
-    try {
-      // Dry run to estimate gas
-      const dryRunResult = await this.chain.provider.dryRunTransactionBlock({
-        transactionBlock: await transaction.build({ client: this.chain.provider }),
-      });
-
-      if (dryRunResult.effects.status.status === 'failure') {
-        throw new Error(`Transaction would fail: ${dryRunResult.effects.status.error}`);
-      }
-
-      const gasUsed = dryRunResult.effects.gasUsed;
-      const totalGas = BigInt(gasUsed.computationCost) + BigInt(gasUsed.storageCost) - BigInt(gasUsed.storageRebate);
-
-      return {
-        computationCost: gasUsed.computationCost,
-        storageCost: gasUsed.storageCost,
-        storageRebate: gasUsed.storageRebate,
-        totalGas: totalGas.toString(),
-      };
-    } catch (error) {
-      console.error('Error estimating Sui gas:', error);
       throw error;
     }
   }

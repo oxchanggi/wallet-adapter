@@ -65,9 +65,6 @@ export class PhantomSuiConnector extends SuiConnector {
 
       this.provider = this.suiProvider;
 
-      // Setup event listeners before connecting
-      await this.setupEventListeners();
-
       // Request connection
       const connectResult = await this.suiProvider.requestAccount();
 

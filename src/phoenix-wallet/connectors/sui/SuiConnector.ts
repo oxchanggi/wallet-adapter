@@ -1,6 +1,6 @@
 import { ConnectorConfig, DappMetadata } from '../types';
 import { Connector } from '../IConnector';
-import { ChainType } from '../../chains/Chain';
+import { ChainType, IChain } from '../../chains/Chain';
 import { SuiChain } from '../../chains/SuiChain';
 import { SuiClient } from '@mysten/sui/client';
 import {
@@ -92,6 +92,10 @@ export abstract class SuiConnector extends Connector {
       // Update SuiClient with new network
     }
     super.handleEventChainChanged(chainId);
+  }
+
+  createPublicClient(chain: IChain<any>) {
+    return new SuiClient({ url: chain.publicRpcUrl });
   }
 
   // Create wallet client for Sui operations (similar to EvmConnector.createWalletClient)
