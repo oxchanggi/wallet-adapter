@@ -29,7 +29,7 @@ interface WalletState {
   chainId: string | null;
   connect: () => Promise<any>;
   disconnect: () => Promise<void>;
-  switchChain: (chainId: string) => Promise<void>;
+  switchChain: (chainId: string) => Promise<IWallet<any, IChain<any>, IConnector, any>>;
   wallet: IWallet<any, IChain<any>, IConnector, any> | null;
   getWallet: () => IWallet<any, IChain<any>, IConnector, any> | null;
 }
@@ -290,6 +290,11 @@ export function useWallet(connectorId: string,{onConnect, onDisconnect, onAccoun
 
       try {
         await connector.switchChainId(newChainId);
+        while ( walletRef.current?.chain?.chainId?.toString() !== newChainId) {
+          await new Promise(resolve => setTimeout(resolve, 20));
+        }
+        return walletRef.current;
+
       } catch (error) {
         console.error(`Failed to switch chain to ${newChainId}:`, error);
         throw error;
