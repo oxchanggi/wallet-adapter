@@ -290,8 +290,8 @@ export function useWallet(connectorId: string,{onConnect, onDisconnect, onAccoun
 
       try {
         await connector.switchChainId(newChainId);
-        while ( walletRef.current?.chain?.chainId?.toString() !== newChainId) {
-          await new Promise(resolve => setTimeout(resolve, 20));
+        while ( walletRef.current?.chain?.id.toString() !== newChainId) {
+          await new Promise(resolve => setTimeout(resolve, 50));
         }
         return walletRef.current;
 
