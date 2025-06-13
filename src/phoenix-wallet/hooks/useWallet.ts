@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ChainType, IChain } from '../chains/Chain';
+import { ChainType, IChain, IChainConfig } from '../chains/Chain';
 import { EvmChain } from '../chains/EvmChain';
 import { EvmConnector, SolanaConnector, SuiConnector } from '../connectors';
 import { IConnector } from '../connectors/IConnector';
@@ -29,8 +29,9 @@ interface WalletState {
   chainId: string | null;
   connect: () => Promise<any>;
   disconnect: () => Promise<void>;
-  switchChain: (chainId: string) => Promise<void>;
+  switchChain: (chainId: string) => Promise<IWallet<any, IChain<any>, IConnector, any>>;
   wallet: IWallet<any, IChain<any>, IConnector, any> | null;
+  getWallet: () => IWallet<any, IChain<any>, IConnector, any> | null;
 }
 
 /**
@@ -39,7 +40,29 @@ interface WalletState {
  * @param connectorId The connector ID to use
  * @returns Connector-specific state and methods
  */
-export function useWallet(connectorId: string): WalletState {
+export function useWallet(
+  connectorId: string,
+  {
+    onConnect,
+    onDisconnect,
+    onAccountChanged,
+    onChainChanged,
+  }: {
+    onConnect?: (
+      cId: string,
+      addr: string,
+      wallet: IWallet<any, IChain<any>, IConnector, any>,
+      chainConfig?: IChainConfig
+    ) => void;
+    onDisconnect?: (cId: string) => void;
+    onAccountChanged?: (cId: string, address: string, wallet: IWallet<any, IChain<any>, IConnector, any>) => void;
+    onChainChanged?: (
+      cId: string,
+      wallet: IWallet<any, IChain<any>, IConnector, any>,
+      chainConfig?: IChainConfig
+    ) => void;
+  } = {}
+): WalletState {
   const walletContext = useWalletConnectors();
   const { connectors, activeConnectors, connectorStatuses, chainConfigs, reconnect } = walletContext;
 
@@ -54,6 +77,7 @@ export function useWallet(connectorId: string): WalletState {
   const connectionAttemptRef = useRef<number>(0);
   const hasAttemptedReconnect = useRef<boolean>(false);
   const initializedRef = useRef<boolean>(false);
+  const walletRef = useRef<IWallet<any, IChain<any>, IConnector, any> | null>(null);
 
   // Get the connector instance
   const connector = useMemo(
@@ -310,6 +334,10 @@ export function useWallet(connectorId: string): WalletState {
 
       try {
         await connector.switchChainId(newChainId);
+        while (walletRef.current?.chain?.chainId?.toString() !== newChainId) {
+          await new Promise((resolve) => setTimeout(resolve, 20));
+        }
+        return walletRef.current;
       } catch (error) {
         console.error(`Failed to switch chain to ${newChainId}:`, error);
         throw error;
@@ -424,6 +452,77 @@ export function useWallet(connectorId: string): WalletState {
     return null;
   }, [status, address, chainId, connector, chainConfigs]);
 
+  useEffect(() => {
+    if (wallet) {
+      walletRef.current = wallet;
+    }
+  }, [wallet]);
+
+  // Event listeners for status changes
+  useWalletConnectorEvent({
+    onConnect: (cId, addr, chain) => {
+      if (cId === connectorId) {
+        console.log(`Connector ${cId} connected with address ${addr} on chain ${chain || 'unknown'}`);
+        // Clear transitional status and set address and chainId
+        setTransitionalStatus(null);
+        setAddress(addr);
+        if (chain) {
+          setChainId(chain);
+        }
+
+        setTimeout(() => {
+          const wallet = walletRef.current;
+          const chainConfig = chainConfigs.find((c) => c.id === chain);
+          if (wallet) {
+            onConnect?.(cId, addr, wallet, chainConfig);
+          }
+        }, 100);
+      }
+    },
+    onDisconnect: (cId) => {
+      if (cId === connectorId) {
+        console.log(`Connector ${cId} disconnected`);
+        // Clear transitional status, address, and chainId
+        setTransitionalStatus(null);
+        setAddress(null);
+        setChainId(null);
+        onDisconnect?.(cId);
+      }
+    },
+    onAccountChanged: (cId, addresses) => {
+      if (cId === connectorId) {
+        console.log(`Connector ${cId} accounts changed to ${addresses.join(', ')}`);
+        if (addresses.length > 0) {
+          setAddress(addresses[0]);
+        } else {
+          setAddress(null);
+        }
+        setTimeout(() => {
+          const wallet = walletRef.current;
+          if (wallet) {
+            if (addresses.length > 0 && addresses[0] != wallet.address) {
+              onAccountChanged?.(cId, addresses[0], wallet);
+            }
+          }
+        }, 100);
+      }
+    },
+    onChainChanged: (cId, chain) => {
+      if (cId === connectorId) {
+        console.log(`Connector ${cId} chain changed to ${chain}`);
+        setChainId(chain);
+
+        setTimeout(() => {
+          const wallet = walletRef.current;
+          const chainConfig = chainConfigs.find((c) => c.id === chain);
+          if (wallet) {
+            onChainChanged?.(cId, wallet, chainConfig);
+          }
+        }, 100);
+      }
+    },
+  });
+
   // Derive status booleans
   const isConnected = status === ConnectorStatus.CONNECTED;
   const isConnecting = status === ConnectorStatus.CONNECTING;
@@ -457,5 +556,6 @@ export function useWallet(connectorId: string): WalletState {
     connect,
     disconnect,
     switchChain,
+    getWallet: () => walletRef.current,
   };
 }

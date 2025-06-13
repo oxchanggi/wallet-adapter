@@ -1,7 +1,7 @@
 import { ITokenContract } from '@/contracts/tokens/TokenContract';
 import { IConnector, IWallet, useWalletConnectors } from '@phoenix-wallet/wallet-adapter';
 import { IChain, ChainType } from '@/phoenix-wallet/chains/Chain';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { SolanaTokenContract } from '@/contracts/tokens/SolanaTokenContract';
 import { EvmTokenContract } from '@/contracts/tokens/EvmTokenContract';
 import { Connection } from '@solana/web3.js';
@@ -12,6 +12,7 @@ import { SuiTokenContract } from '@/contracts/tokens/SuiTokenContract';
 interface TokenContractState {
   contract: ITokenContract | null;
   error: Error | null;
+  getContract: () => ITokenContract | null;
 }
 
 interface TokenContractOptions {
@@ -34,7 +35,9 @@ export function useTokenContract(options: TokenContractOptions): TokenContractSt
   const { contractAddress, wallet, chainId } = options;
   const { chainConfigs } = useWalletConnectors();
 
-  return useMemo(() => {
+  const contractRef = useRef<ITokenContract | null>(null);
+
+  const contractConfig= useMemo(() => {
     let contract: ITokenContract | null = null;
     if (!contractAddress) {
       return {
@@ -107,4 +110,17 @@ export function useTokenContract(options: TokenContractOptions): TokenContractSt
       error: null,
     };
   }, [contractAddress, wallet, chainId, chainConfigs]);
+
+
+  useEffect(() => {
+    if (contractConfig.contract){
+      contractRef.current = contractConfig.contract;
+    }
+  }, [contractConfig]);
+
+  return {
+    contract: contractRef.current,
+    error: contractConfig.error,
+    getContract: () => contractRef.current,
+  }
 }
