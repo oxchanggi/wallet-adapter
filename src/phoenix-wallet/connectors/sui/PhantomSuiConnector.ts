@@ -8,7 +8,7 @@ export class PhantomSuiConnector extends SuiConnector {
     throw new Error('Method not implemented.');
   }
   createPublicClient(chain: IChain<any>) {
-    const client = new SuiClient({url: chain.provider})
+    const client = new SuiClient({ url: chain.provider });
     return client;
   }
   switchChainId(chainId: string): Promise<void> {
@@ -67,7 +67,6 @@ export class PhantomSuiConnector extends SuiConnector {
 
       this.provider = this.suiProvider;
       await this.init();
-
 
       // Request connection
       const connectResult = await this.suiProvider.requestAccount();

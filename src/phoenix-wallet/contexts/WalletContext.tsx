@@ -31,15 +31,15 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
   useEffect(() => {
     const initializeConnectorStatuses = async () => {
       const initialStatuses: { [key: string]: ConnectorStatus } = {};
-      
+
       // First, set all connectors to a default DISCONNECTED state
       connectors.forEach((connector) => {
         initialStatuses[connector.id] = ConnectorStatus.DISCONNECTED;
       });
-      
+
       // Set initial statuses first to avoid UI flicker
       setConnectorStatuses(initialStatuses);
-      
+
       // Then check for actual connection states asynchronously
       if (connectors.length > 0) {
         for (const connector of connectors) {
@@ -47,15 +47,15 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
             const isConnected = await connector.isConnected();
             if (isConnected) {
               // Update with the real status
-              setConnectorStatuses(prev => ({
+              setConnectorStatuses((prev) => ({
                 ...prev,
-                [connector.id]: ConnectorStatus.CONNECTED
+                [connector.id]: ConnectorStatus.CONNECTED,
               }));
-              
+
               // Also add to active connectors
-              setActiveConnectors(prev => ({
+              setActiveConnectors((prev) => ({
                 ...prev,
-                [connector.id]: connector
+                [connector.id]: connector,
               }));
             }
           } catch (error) {
@@ -64,7 +64,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
         }
       }
     };
-    
+
     initializeConnectorStatuses();
   }, [connectors]);
 

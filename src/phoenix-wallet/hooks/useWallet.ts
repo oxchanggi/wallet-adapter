@@ -334,8 +334,8 @@ export function useWallet(
 
       try {
         await connector.switchChainId(newChainId);
-        while ( walletRef.current?.chain?.id.toString() !== newChainId) {
-          await new Promise(resolve => setTimeout(resolve, 50));
+        while (walletRef.current?.chain?.id.toString() !== newChainId) {
+          await new Promise((resolve) => setTimeout(resolve, 50));
         }
         return walletRef.current;
       } catch (error) {

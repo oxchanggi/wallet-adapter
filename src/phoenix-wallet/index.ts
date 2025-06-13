@@ -9,30 +9,28 @@ export * from './wallets/EvmWallet';
 export * from './wallets/SolanaWallet';
 
 // Connectors
-export * from "./wallets/EvmWallet";
-export * from "./wallets/SuiWallet";
+export * from './wallets/EvmWallet';
+export * from './wallets/SuiWallet';
 
 export * from './chains/SuiChain';
 
-
-
-export * from "./connectors/IConnector";
-export * from "./connectors/evm/EvmConnector";
-export * from "./connectors/evm/MetamaskEvmConnector";
-export * from "./connectors/evm/PhantomEvmConnector";
-export * from "./connectors/evm/MagicEdenEvmConnector";
-export * from "./connectors/solana/SolanaConnector";
-export * from "./connectors/evm/RainbowEvmConnector";
-export * from "./connectors/evm/OkxEvmConnector";
-export * from './connectors/evm/TrustWalletEvmConnector'
+export * from './connectors/IConnector';
+export * from './connectors/evm/EvmConnector';
+export * from './connectors/evm/MetamaskEvmConnector';
+export * from './connectors/evm/PhantomEvmConnector';
+export * from './connectors/evm/MagicEdenEvmConnector';
+export * from './connectors/solana/SolanaConnector';
+export * from './connectors/evm/RainbowEvmConnector';
+export * from './connectors/evm/OkxEvmConnector';
+export * from './connectors/evm/TrustWalletEvmConnector';
 export * from './connectors/evm/BinanceEvmConnector';
 export * from './connectors/evm/EvmConnector';
 export * from './connectors/sui/SuiConnector';
-export * from "./connectors/sui/PhantomSuiConnector";
+export * from './connectors/sui/PhantomSuiConnector';
 export * from './connectors/evm/RabbyEvmConnector';
 export * from './connectors/evm/CoinbaseEvmConnector';
 export * from './connectors/solana/SolanaConnector';
-export * from './connectors/sui/SuiConnector';      
+export * from './connectors/sui/SuiConnector';
 export * from './connectors/sui/PhantomSuiConnector';
 export * from './connectors/sui/SuiWalletClient';
 
@@ -40,7 +38,7 @@ export * from './connectors/types';
 export * from './connectors/index';
 
 // Types
-export * from "./types";
+export * from './types';
 
 // Contracts
 export * from './contracts/IContract';

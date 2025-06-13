@@ -1,2 +1,2 @@
 // Sui Types
-export * from "./sui";
+export * from './sui';

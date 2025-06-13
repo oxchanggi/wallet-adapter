@@ -61,8 +61,8 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({ connectorId }) => 
     wallet,
   } = useWallet(connectorId, {
     onConnect: (cId, addr, wallet, chainConfig) => {
-      console.log("get wallet", getWallet());
-      
+      console.log('get wallet', getWallet());
+
       console.log('onConnect', cId, addr, wallet, chainConfig);
     },
     onDisconnect: (cId) => {

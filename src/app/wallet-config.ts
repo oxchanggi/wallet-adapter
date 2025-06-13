@@ -11,7 +11,7 @@ import {
   SolanaCluster,
   CoinbaseEvmConnector,
   RabbyEvmConnector,
-  PhantomSuiConnector
+  PhantomSuiConnector,
 } from '@phoenix-wallet/wallet-adapter';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom';
 

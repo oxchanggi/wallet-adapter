@@ -37,7 +37,7 @@ export function useTokenContract(options: TokenContractOptions): TokenContractSt
 
   const contractRef = useRef<ITokenContract | null>(null);
 
-  const contractConfig= useMemo(() => {
+  const contractConfig = useMemo(() => {
     let contract: ITokenContract | null = null;
     if (!contractAddress) {
       return {
@@ -111,9 +111,8 @@ export function useTokenContract(options: TokenContractOptions): TokenContractSt
     };
   }, [contractAddress, wallet, chainId, chainConfigs]);
 
-
   useEffect(() => {
-    if (contractConfig.contract){
+    if (contractConfig.contract) {
       contractRef.current = contractConfig.contract;
     }
   }, [contractConfig]);
@@ -122,5 +121,5 @@ export function useTokenContract(options: TokenContractOptions): TokenContractSt
     contract: contractRef.current,
     error: contractConfig.error,
     getContract: () => contractRef.current,
-  }
+  };
 }

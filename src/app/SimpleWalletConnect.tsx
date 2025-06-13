@@ -93,7 +93,7 @@ export const SimpleWalletConnect: React.FC = () => {
   const { wallet, isConnected, address, chainId, switchChain, getWallet } = useWallet(selectedConnectorId);
 
   // Initialize token contract
-  const { getContract} = useTokenContract({
+  const { getContract } = useTokenContract({
     contractAddress: tokenAddress,
     chainId: chainId || '',
     wallet: wallet,
@@ -116,9 +116,9 @@ export const SimpleWalletConnect: React.FC = () => {
       // For EVM chains, we'll switch to the selected chain
       if (wallet.chain.chainType === ChainType.EVM) {
         await switchChain(selectedChainId);
-        console.log("chain switched successfully");
-        console.log("wallet switch chain", getWallet());
-        const selectedChain = chainConfigs.find(chain => chain.id === selectedChainId);
+        console.log('chain switched successfully');
+        console.log('wallet switch chain', getWallet());
+        const selectedChain = chainConfigs.find((chain) => chain.id === selectedChainId);
         setOperationResult({
           type: 'success',
           data: `Chain switched successfully to ${selectedChain?.name || 'Unknown'}!`,
@@ -605,8 +605,8 @@ export const SimpleWalletConnect: React.FC = () => {
                         onChange={(e) => setSelectedChainId(e.target.value)}
                       >
                         {chainConfigs
-                          .filter(chain => chain.chainType === ChainType.EVM)
-                          .map(chain => (
+                          .filter((chain) => chain.chainType === ChainType.EVM)
+                          .map((chain) => (
                             <MenuItem key={chain.id} value={chain.id}>
                               {chain.name}
                             </MenuItem>
@@ -617,10 +617,10 @@ export const SimpleWalletConnect: React.FC = () => {
                   <Button variant="outlined" size="small" startIcon={<Sync />} onClick={fetchWalletBalance}>
                     Refresh
                   </Button>
-                  <Button 
-                    variant="outlined" 
-                    size="small" 
-                    startIcon={<AccountBalanceWallet />} 
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<AccountBalanceWallet />}
                     onClick={handleSwitchChain}
                     disabled={!selectedChainId || selectedChainId === chainId}
                   >

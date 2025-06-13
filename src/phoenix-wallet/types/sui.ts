@@ -1,6 +1,6 @@
 // Sui Transaction Types
 export interface SuiTransactionBlock {
-  kind: "TransactionBlock";
+  kind: 'TransactionBlock';
   inputs: Array<{
     type: string;
     value?: unknown;
@@ -15,7 +15,7 @@ export interface SuiTransactionResponse {
   digest: string;
   effects?: {
     status: {
-      status: "success" | "failure";
+      status: 'success' | 'failure';
       error?: string;
     };
     gasUsed: {
@@ -68,16 +68,11 @@ export interface SuiConnectResult {
 }
 
 // Sui Chain Identifiers
-export type SuiNetwork = "mainnet" | "testnet" | "devnet";
+export type SuiNetwork = 'mainnet' | 'testnet' | 'devnet';
 export type SuiChainIdentifier = `sui:${SuiNetwork}`;
 
 // Sui Wallet Events
-export type SuiWalletEventType =
-  | "connect"
-  | "disconnect"
-  | "accountChange"
-  | "chainChange"
-  | "accountChanged";
+export type SuiWalletEventType = 'connect' | 'disconnect' | 'accountChange' | 'chainChange' | 'accountChanged';
 
 export interface SuiAccountChangeEvent {
   accounts: string[];

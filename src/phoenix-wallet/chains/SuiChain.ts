@@ -1,5 +1,5 @@
-import { Chain, ChainType, IChain } from "./Chain";
-import { SuiClient } from "@mysten/sui/client";
+import { Chain, ChainType, IChain } from './Chain';
+import { SuiClient } from '@mysten/sui/client';
 
 export class SuiChain extends Chain<SuiClient> {
   private _chainName: string;
