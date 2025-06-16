@@ -36,6 +36,7 @@ import {
   Refresh,
   Info,
 } from '@mui/icons-material';
+import { useTokenContract } from '@/hooks/useTokenContract';
 
 interface ConnectorItemProps {
   connectorId: string;
@@ -43,6 +44,8 @@ interface ConnectorItemProps {
 
 export const ConnectorItem: React.FC<ConnectorItemProps> = ({ connectorId }) => {
   const {
+    getWallet,
+    isWalletReady,
     connector,
     status,
     isConnected,
@@ -56,7 +59,32 @@ export const ConnectorItem: React.FC<ConnectorItemProps> = ({ connectorId }) => 
     disconnect,
     switchChain,
     wallet,
-  } = useWallet(connectorId);
+  } = useWallet(connectorId, {
+    onConnect: (cId, addr, wallet, chainConfig) => {
+      console.log('get wallet', getWallet());
+
+      console.log('onConnect', cId, addr, wallet, chainConfig);
+    },
+    onDisconnect: (cId) => {
+      console.log('onDisconnect', cId);
+    },
+    onChainChanged: (cId, wallet, chainConfig) => {
+      console.log('onChainChanged', cId, wallet, chainConfig);
+    },
+    onAccountChanged: (cId, addr, wallet) => {
+      console.log('onAccountChanged', cId, addr, wallet);
+    },
+  });
+
+  console.log('connectorId', connectorId);
+  console.log('connector', connector);
+  console.log('status', status);
+  console.log('isConnected', isConnected);
+  console.log('isWalletReady', isWalletReady);
+  console.log('isConnecting', isConnecting);
+  console.log('isDisconnected', isDisconnected);
+  console.log('hasError', hasError);
+  console.log('wallet', wallet);
 
   const { chainConfigs } = useWalletConnectors();
 

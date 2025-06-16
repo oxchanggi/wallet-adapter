@@ -13,6 +13,7 @@ import {
   VersionedTransaction,
   TransactionMessage,
 } from '@solana/web3.js';
+import { Transaction as SubTransaction } from '@mysten/sui/transactions';
 import React, { useState, useEffect } from 'react';
 import { ConnectorItem } from './ConnectorItem';
 import { useTokenContract } from '@/hooks/useTokenContract';
@@ -36,6 +37,10 @@ import {
   ButtonGroup,
   CircularProgress,
   InputAdornment,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import {
   AccountBalanceWallet,
@@ -51,8 +56,9 @@ import {
 } from '@mui/icons-material';
 
 export const SimpleWalletConnect: React.FC = () => {
-  const { connectors } = useWalletConnectors();
+  const { connectors, chainConfigs } = useWalletConnectors();
   const [selectedConnectorId, setSelectedConnectorId] = useState<string>('');
+  const [selectedChainId, setSelectedChainId] = useState<string>('');
   const [message, setMessage] = useState<string>('Hello Web3!');
   const [transactionData, setTransactionData] = useState<{
     to: string;
@@ -64,6 +70,7 @@ export const SimpleWalletConnect: React.FC = () => {
     data: '0x',
   });
   const [rawTransaction, setRawTransaction] = useState<string>('');
+  const [signature, setSignature] = useState<string>('');
   const [operationResult, setOperationResult] = useState<{
     type: string;
     data: string;
@@ -83,10 +90,10 @@ export const SimpleWalletConnect: React.FC = () => {
     balance: string;
   } | null>(null);
 
-  const { wallet, isConnected, address, chainId } = useWallet(selectedConnectorId);
+  const { wallet, isConnected, address, chainId, switchChain, getWallet } = useWallet(selectedConnectorId);
 
   // Initialize token contract
-  const { contract: tokenContract, error: tokenContractError } = useTokenContract({
+  const { getContract } = useTokenContract({
     contractAddress: tokenAddress,
     chainId: chainId || '',
     wallet: wallet,
@@ -99,6 +106,39 @@ export const SimpleWalletConnect: React.FC = () => {
     symbol: string;
     name: string;
   } | null>(null);
+
+  // Add switch chain handler
+  const handleSwitchChain = async () => {
+    if (!wallet || !selectedChainId) return;
+
+    try {
+      setOperationResult({ type: 'loading', data: 'Switching chain...' });
+      // For EVM chains, we'll switch to the selected chain
+      if (wallet.chain.chainType === ChainType.EVM) {
+        await switchChain(selectedChainId);
+        console.log('chain switched successfully');
+        console.log('wallet switch chain', getWallet());
+        const selectedChain = chainConfigs.find((chain) => chain.id === selectedChainId);
+        setOperationResult({
+          type: 'success',
+          data: `Chain switched successfully to ${selectedChain?.name || 'Unknown'}!`,
+        });
+      } else {
+        setOperationResult({
+          type: 'error',
+          data: 'Chain switching is only supported for EVM chains',
+        });
+      }
+      // Refresh wallet balance after chain switch
+      await fetchWalletBalance();
+    } catch (error: any) {
+      setOperationResult({
+        type: 'error',
+        data: 'Failed to switch chain',
+        error: error.message,
+      });
+    }
+  };
 
   // Fetch wallet balance when wallet is connected
   useEffect(() => {
@@ -208,9 +248,20 @@ export const SimpleWalletConnect: React.FC = () => {
         const signedTx = await wallet.signTransaction(transaction);
         setOperationResult({
           type: 'success',
-          data: `Transaction signed successfully! Signed TX: ${signedTx.slice(0, 30)}...`,
+          data: `Transaction signed successfully! Signed TX: ${signedTx}`,
         });
         setRawTransaction(signedTx);
+      } else if (selectedConnectorId.includes('sui')) {
+        // create transaction transfer sui
+        const transaction = new SubTransaction();
+        const recipientAddress = transactionData.to;
+        const [coin] = transaction.splitCoins(transaction.gas, [transaction.pure.u64(transactionData.value)]);
+        transaction.transferObjects([coin], recipientAddress);
+        const signedTx = await wallet.signTransaction(transaction);
+        setOperationResult({
+          type: 'success',
+          data: `Transaction signed successfully! Signed TX: ${(signedTx as any).transaction}. Signature: ${(signedTx as any).signature}`,
+        });
       } else {
         // EVM transaction
         const transaction: EvmTransaction = {
@@ -221,7 +272,7 @@ export const SimpleWalletConnect: React.FC = () => {
         const signedTx = await wallet.signTransaction(transaction);
         setOperationResult({
           type: 'success',
-          data: `Transaction signed successfully! Signed TX: ${signedTx.slice(0, 30)}...`,
+          data: `Transaction signed successfully! Signed TX: ${signedTx}`,
         });
         setRawTransaction(signedTx);
       }
@@ -271,6 +322,17 @@ export const SimpleWalletConnect: React.FC = () => {
           type: 'success',
           data: `Transaction sent successfully! TX Hash: ${txHash}`,
         });
+      } else if (selectedConnectorId.includes('sui')) {
+        // create transaction transfer sui
+        const transaction = new SubTransaction();
+        const recipientAddress = transactionData.to;
+        const [coin] = transaction.splitCoins(transaction.gas, [transaction.pure.u64(transactionData.value)]);
+        transaction.transferObjects([coin], recipientAddress);
+        const txHash = await wallet.sendTransaction(transaction);
+        setOperationResult({
+          type: 'success',
+          data: `Transaction sent successfully! TX Hash: ${txHash}`,
+        });
       } else {
         // EVM transaction
         const transaction: EvmTransaction = {
@@ -298,7 +360,12 @@ export const SimpleWalletConnect: React.FC = () => {
 
     try {
       setOperationResult({ type: 'loading', data: 'Sending raw transaction...' });
-      const txHash = await wallet.sendRawTransaction(rawTransaction);
+      let txHash;
+      if (isSui) {
+        txHash = await wallet.sendRawTransaction({ transaction: rawTransaction, signature: signature });
+      } else {
+        txHash = await wallet.sendRawTransaction(rawTransaction);
+      }
       setOperationResult({
         type: 'success',
         data: `Raw transaction sent successfully! TX Hash: ${txHash}`,
@@ -314,6 +381,7 @@ export const SimpleWalletConnect: React.FC = () => {
 
   // Token Contract Functions
   const handleGetTokenInfo = async () => {
+    const tokenContract = getContract();
     if (!tokenContract || !address) return;
     console.log(tokenContract, address);
 
@@ -351,6 +419,7 @@ export const SimpleWalletConnect: React.FC = () => {
   };
 
   const handleTransferToken = async () => {
+    const tokenContract = getContract();
     if (!tokenContract || !tokenRecipient || !tokenAmount) return;
 
     try {
@@ -391,6 +460,7 @@ export const SimpleWalletConnect: React.FC = () => {
 
   // Determine if the selected connector is Solana
   const isSolana = wallet?.chain.chainType === ChainType.SOLANA;
+  const isSui = wallet?.chain.chainType === ChainType.SUI;
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -524,9 +594,39 @@ export const SimpleWalletConnect: React.FC = () => {
 
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h6">Wallet Balance</Typography>
-                <Button variant="outlined" size="small" startIcon={<Sync />} onClick={fetchWalletBalance}>
-                  Refresh
-                </Button>
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                  {wallet?.chain.chainType === ChainType.EVM && (
+                    <FormControl size="small" sx={{ minWidth: 120 }}>
+                      <InputLabel id="chain-select-label">Chain</InputLabel>
+                      <Select
+                        labelId="chain-select-label"
+                        value={selectedChainId}
+                        label="Chain"
+                        onChange={(e) => setSelectedChainId(e.target.value)}
+                      >
+                        {chainConfigs
+                          .filter((chain) => chain.chainType === ChainType.EVM)
+                          .map((chain) => (
+                            <MenuItem key={chain.id} value={chain.id}>
+                              {chain.name}
+                            </MenuItem>
+                          ))}
+                      </Select>
+                    </FormControl>
+                  )}
+                  <Button variant="outlined" size="small" startIcon={<Sync />} onClick={fetchWalletBalance}>
+                    Refresh
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<AccountBalanceWallet />}
+                    onClick={handleSwitchChain}
+                    disabled={!selectedChainId || selectedChainId === chainId}
+                  >
+                    Switch Chain
+                  </Button>
+                </Box>
               </Box>
 
               {walletBalance ? (
@@ -652,7 +752,7 @@ export const SimpleWalletConnect: React.FC = () => {
                       color="primary"
                       startIcon={<Send />}
                       onClick={handleTransferToken}
-                      disabled={!tokenRecipient || !tokenAmount || !tokenContract}
+                      disabled={!tokenRecipient || !tokenAmount || !getContract()}
                       sx={{ minWidth: { md: '200px' } }}
                     >
                       Transfer Tokens
@@ -785,6 +885,25 @@ export const SimpleWalletConnect: React.FC = () => {
                 value={rawTransaction}
                 onChange={(e) => setRawTransaction(e.target.value)}
                 multiline
+                rows={2}
+                placeholder={
+                  isSolana
+                    ? 'AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAEDyf2cSYf0apvP4BeGu/HH2cIrF+7QFtYEEvH4Q9t+mQAAAAAAAAAAqcdptXNWyMB3SgeuXbXgQvdJMr2EGqCbTjLrLfP8JEUBAgIAAQwCAAAAKgAAAAAAAAA='
+                    : '0x89205a3a3b2a136b355f67371d9153afa4050e13c8458cd50a1e40783d37d39b...'
+                }
+                variant="outlined"
+                margin="normal"
+                InputProps={{
+                  style: { fontFamily: 'monospace' },
+                }}
+              />
+              <TextField
+                fullWidth
+                label="Signature Transaction (base64)"
+                value={signature}
+                onChange={(e) => setSignature(e.target.value)}
+                multiline
+                disabled={!isSui}
                 rows={2}
                 placeholder={
                   isSolana

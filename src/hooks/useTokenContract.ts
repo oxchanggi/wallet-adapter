@@ -1,15 +1,18 @@
 import { ITokenContract } from '@/contracts/tokens/TokenContract';
 import { IConnector, IWallet, useWalletConnectors } from '@phoenix-wallet/wallet-adapter';
 import { IChain, ChainType } from '@/phoenix-wallet/chains/Chain';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { SolanaTokenContract } from '@/contracts/tokens/SolanaTokenContract';
 import { EvmTokenContract } from '@/contracts/tokens/EvmTokenContract';
 import { Connection } from '@solana/web3.js';
 import { createPublicClient, http } from 'viem';
+import { SuiClient } from '@mysten/sui/client';
+import { SuiTokenContract } from '@/contracts/tokens/SuiTokenContract';
 
 interface TokenContractState {
   contract: ITokenContract | null;
   error: Error | null;
+  getContract: () => ITokenContract | null;
 }
 
 interface TokenContractOptions {
@@ -32,7 +35,9 @@ export function useTokenContract(options: TokenContractOptions): TokenContractSt
   const { contractAddress, wallet, chainId } = options;
   const { chainConfigs } = useWalletConnectors();
 
-  return useMemo(() => {
+  const contractRef = useRef<ITokenContract | null>(null);
+
+  const contractConfig = useMemo(() => {
     let contract: ITokenContract | null = null;
     if (!contractAddress) {
       return {
@@ -51,27 +56,41 @@ export function useTokenContract(options: TokenContractOptions): TokenContractSt
       };
     }
 
-    if (chainConfig.chainType === ChainType.SOLANA) {
-      const connection = new Connection(chainConfig.privateRpcUrl);
-      contract = new SolanaTokenContract(connection, contractAddress);
-    } else if (chainConfig.chainType === ChainType.EVM) {
-      const publicClient = createPublicClient({
-        chain: {
-          id: chainConfig.chainId,
-          name: chainConfig.name,
-          nativeCurrency: {
-            name: chainConfig.nativeCurrency.name,
-            symbol: chainConfig.nativeCurrency.symbol,
-            decimals: chainConfig.nativeCurrency.decimals,
-          },
-          rpcUrls: {
-            default: { http: [chainConfig.privateRpcUrl] },
-          },
-        },
-        transport: http(chainConfig.privateRpcUrl),
-      });
+    switch (chainConfig.chainType) {
+      case ChainType.SOLANA: {
+        const connection = new Connection(chainConfig.privateRpcUrl);
+        contract = new SolanaTokenContract(connection, contractAddress);
+        break;
+      }
 
-      contract = new EvmTokenContract(publicClient, contractAddress);
+      case ChainType.EVM: {
+        const publicClient = createPublicClient({
+          chain: {
+            id: chainConfig.chainId,
+            name: chainConfig.name,
+            nativeCurrency: {
+              name: chainConfig.nativeCurrency.name,
+              symbol: chainConfig.nativeCurrency.symbol,
+              decimals: chainConfig.nativeCurrency.decimals,
+            },
+            rpcUrls: {
+              default: { http: [chainConfig.privateRpcUrl] },
+            },
+          },
+          transport: http(chainConfig.privateRpcUrl),
+        });
+
+        contract = new EvmTokenContract(publicClient, contractAddress);
+        break;
+      }
+
+      case ChainType.SUI: {
+        const suiClient = new SuiClient({
+          url: chainConfig.privateRpcUrl,
+        });
+        contract = new SuiTokenContract(suiClient, contractAddress);
+        break;
+      }
     }
 
     if (!contract) {
@@ -91,4 +110,16 @@ export function useTokenContract(options: TokenContractOptions): TokenContractSt
       error: null,
     };
   }, [contractAddress, wallet, chainId, chainConfigs]);
+
+  useEffect(() => {
+    if (contractConfig.contract) {
+      contractRef.current = contractConfig.contract;
+    }
+  }, [contractConfig]);
+
+  return {
+    contract: contractRef.current,
+    error: contractConfig.error,
+    getContract: () => contractRef.current,
+  };
 }

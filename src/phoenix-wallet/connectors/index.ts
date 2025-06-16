@@ -9,4 +9,6 @@ export * from './solana/SolanaConnector';
 export * from './evm/TrustWalletEvmConnector';
 export * from './evm/BinanceEvmConnector';
 export * from './evm/BitgetEvmConnector';
+export * from './sui/SuiConnector';
+export * from './sui/PhantomSuiConnector';
 export * from '../contexts/WalletContext';
