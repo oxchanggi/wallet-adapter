@@ -1,6 +1,20 @@
 'use client';
 
-import { WalletProvider } from '@phoenix-wallet/wallet-adapter';
+import { RabbyEvmConnector } from '@/phoenix-wallet/connectors/evm/RabbyEvmConnector';
+import {
+  BinanceEvmConnector,
+  ChainType,
+  MagicEdenEvmConnector,
+  MetamaskEvmConnector,
+  PhantomEvmConnector,
+  RainbowEvmConnector,
+  TrustWalletEvmConnector,
+  OkxEvmConnector,
+  WalletProvider,
+  SolanaConnector,
+  SolanaCluster,
+  BitgetEvmConnector,
+} from '../phoenix-wallet';
 import { SimpleWalletConnect } from './SimpleWalletConnect';
 import { defaultConnectors, chainConfigs } from './wallet-config';
 import { ThemeProvider, createTheme } from '@mui/material/styles';

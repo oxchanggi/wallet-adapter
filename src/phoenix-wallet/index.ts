@@ -44,6 +44,7 @@ export * from './types';
 export * from './contracts/IContract';
 export * from './contracts/EvmContract';
 export * from './contracts/SolanaContract';
+export * from './contracts/SuiContract';
 
 // Contexts
 export { useWalletConnectors, WalletProvider } from './contexts/WalletContext';
