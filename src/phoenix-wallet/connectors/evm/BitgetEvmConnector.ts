@@ -2,6 +2,9 @@ import { DappMetadata } from '../types';
 import { EvmConnector } from './EvmConnector';
 
 export class BitgetEvmConnector extends EvmConnector {
+  get installLink(): string {
+    return 'https://bitget.com/';
+  }
   constructor(dappMetadata: DappMetadata) {
     super(
       'bitgetevm',

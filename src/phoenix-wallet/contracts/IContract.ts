@@ -12,7 +12,7 @@ export abstract class Contract implements IContract {
   constructor(address: string) {
     this._address = address;
   }
-  abstract initialize(): Promise<void>;
+  abstract initialize(): Promise<void> ;
 
   get address(): string {
     return this._address;
