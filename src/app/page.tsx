@@ -1,6 +1,6 @@
 'use client';
 
-import { PhoenixPrivyProvider } from '../phoenix-wallet';
+import { EnhancedPhoenixPrivyProvider } from '../phoenix-wallet';
 import { SimpleWalletConnect } from './SimpleWalletConnect';
 import { defaultConnectors, chainConfigs } from './wallet-config';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -160,11 +160,14 @@ export default function Home() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <PhoenixPrivyProvider
+      <EnhancedPhoenixPrivyProvider
         appId="cm664kkkp01ytuwuce4l8y9s2" // Replace with your Privy App ID
         chainConfigs={chainConfigs}
         connectors={defaultConnectors}
         reconnect="auto"
+        // Enable both EVM and Solana support
+        enableEvm={true}
+        enableSolana={true}
         // Custom Privy configuration
         privyConfig={{
           appearance: {
@@ -179,20 +182,33 @@ export default function Home() {
             createOnLogin: 'users-without-wallets',
           },
         }}
-        // Custom Privy connector configuration
-        privyConnectorConfig={{
-          id: 'privy',
-          name: 'Phoenix Auth',
-          logo: 'https://ethglobal.b-cdn.net/organizations/ijybm/square-logo/default.png', // Add Privy icon
+        // Custom Privy connector configuration for EVM
+        evmPrivyConnectorConfig={{
+          id: 'privy-evm',
+          name: 'Phoenix Auth (EVM)',
+          logo: 'https://ethglobal.b-cdn.net/organizations/ijybm/square-logo/default.png',
           dappMetadata: {
             name: 'Phoenix Wallet Demo',
             url: typeof window !== 'undefined' ? window.location.origin : 'https://localhost:3000',
             icon: '/phoenix-logo.png',
           },
         }}
+        // Custom Privy connector configuration for Solana
+        solanaPrivyConnectorConfig={{
+          id: 'privy-solana',
+          name: 'Phoenix Auth (Solana)',
+          logo: 'https://ethglobal.b-cdn.net/organizations/ijybm/square-logo/default.png',
+          dappMetadata: {
+            name: 'Phoenix Wallet Demo - Solana',
+            url: typeof window !== 'undefined' ? window.location.origin : 'https://localhost:3000',
+            icon: '/phoenix-logo.png',
+          },
+          chainId: 'solana_devnet',
+          rpcUrl: 'https://api.devnet.solana.com',
+        }}
       >
         <SimpleWalletConnect />
-      </PhoenixPrivyProvider>
+      </EnhancedPhoenixPrivyProvider>
     </ThemeProvider>
   );
 }
