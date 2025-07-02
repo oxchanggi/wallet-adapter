@@ -52,7 +52,7 @@ export const usePrivyBridge = (privyConnector: PrivyConnector) => {
                     // Send the raw transaction using the provider
                     return await provider.request({
                       method: 'eth_sendRawTransaction',
-                      params: [transaction.serializedTransaction],
+                      params: [(transaction as any).serializedTransaction],
                     });
                   },
                   prepareTransactionRequest: async (transaction: EvmTransaction) => {

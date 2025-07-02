@@ -62,7 +62,7 @@ export const useSolanaPrivyBridge = (solanaPrivyConnector: SolanaPrivyConnector)
       })
     ),
     connectWallet: async (): Promise<SolanaPrivyWallet> => {
-      const newWallet = await solanaHooks.createWallet();
+      const newWallet: any = await solanaHooks.createWallet();
       return {
         address: newWallet.address,
         chainId: newWallet.chainId || solanaPrivyConnector.chainId,
@@ -152,12 +152,12 @@ export const useSolanaPrivyBridge = (solanaPrivyConnector: SolanaPrivyConnector)
   useEffect(() => {
     if (solanaHooks.wallets.length > 0) {
       // For simplicity, use the first wallet's chainId
-      const primaryWallet = solanaHooks.wallets[0];
+      const primaryWallet: any = solanaHooks.wallets[0];
       if (primaryWallet?.chainId) {
         solanaPrivyConnector.handleEventChainChanged(primaryWallet.chainId);
       }
     }
-  }, [solanaHooks.wallets.map((w) => w.chainId).join(','), solanaPrivyConnector]);
+  }, [solanaHooks.wallets.map((w: any) => w.chainId).join(','), solanaPrivyConnector]);
 
   return solanaPrivyContext;
 };
