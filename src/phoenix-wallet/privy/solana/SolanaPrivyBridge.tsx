@@ -42,7 +42,6 @@ export const useSolanaPrivyBridge = (solanaPrivyConnector: SolanaPrivyConnector)
             transaction,
             connection,
           });
-          console.log('signTransaction rs', rs);
           return rs;
         },
         signAllTransactions: async (transactions: SolanaTransaction[]) => {

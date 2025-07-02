@@ -34,16 +34,13 @@ export const usePrivyBridge = (privyConnector: PrivyConnector) => {
                 walletClient: {
                   ...privyHooks?.user?.wallet,
                   signMessage: async (message: { account: string; message: string }) => {
-                    console.log('     ✅✅✅✅✅✅✅✅✅ signMessage', message);
                     const rs = await signMessage({
                       message: message.message,
                     });
-                    console.log('     ✅✅✅✅✅✅✅✅✅ rs', rs);
                     return rs.signature;
                   },
                   signTransaction: async (transaction: EvmTransaction) => {
                     const rs = await signTransaction(transaction);
-                    console.log('     ✅✅✅✅✅✅✅✅✅ rs', rs);
                     return rs.signature;
                   },
                   signAllTransactions: async (_transactions: EvmTransaction[]) => {},
@@ -51,7 +48,6 @@ export const usePrivyBridge = (privyConnector: PrivyConnector) => {
                     return sendTransaction(transaction);
                   },
                   sendRawTransaction: async (transaction: string) => {
-                    console.log('     ✅✅✅✅✅✅✅✅✅ sendRawTransaction', transaction);
                     const provider = await wallet.getEthereumProvider();
                     // Send the raw transaction using the provider
                     return await provider.request({
