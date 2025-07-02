@@ -2,9 +2,11 @@ import React, { useMemo } from 'react';
 import { PrivyProvider, PrivyClientConfig } from '@privy-io/react-auth';
 import { WalletProvider } from '../contexts/WalletContext';
 import { IConnector } from '../connectors/IConnector';
-import { IChainConfig } from '../chains/Chain';
+import { IChainConfig, ChainType } from '../chains/Chain';
 import { PrivyConnector } from './PrivyConnector';
 import { PrivyBridge } from './PrivyBridge';
+import { SolanaPrivyConnector } from './solana/SolanaPrivyConnector';
+import { SolanaPrivyBridge } from './solana/SolanaPrivyBridge';
 
 export interface PhoenixPrivyProviderProps {
   children: React.ReactNode;
@@ -18,8 +20,12 @@ export interface PhoenixPrivyProviderProps {
   chainConfigs: IChainConfig[];
   reconnect?: 'none' | 'auto';
 
-  // Privy connector configuration
-  privyConnectorConfig?: {
+  // Multi-chain support
+  enableEvm?: boolean;
+  enableSolana?: boolean;
+
+  // EVM Privy connector configuration
+  evmPrivyConnectorConfig?: {
     id?: string;
     name?: string;
     logo?: string;
@@ -28,6 +34,19 @@ export interface PhoenixPrivyProviderProps {
       url: string;
       icon?: string;
     };
+  };
+
+  // Solana Privy connector configuration
+  solanaPrivyConnectorConfig?: {
+    id?: string;
+    name?: string;
+    logo?: string;
+    dappMetadata?: {
+      name: string;
+      url: string;
+      icon?: string;
+    };
+    chainId?: 'solana_mainnet_beta' | 'solana_devnet' | 'solana_testnet';
   };
 }
 
@@ -38,25 +57,62 @@ export const PhoenixPrivyProvider: React.FC<PhoenixPrivyProviderProps> = ({
   connectors = [],
   chainConfigs,
   reconnect = 'none',
-  privyConnectorConfig = {},
+  enableEvm = true,
+  enableSolana = false,
+  evmPrivyConnectorConfig = {},
+  solanaPrivyConnectorConfig = {},
 }) => {
-  // Create Privy connector instance
-  const privyConnector = useMemo(() => {
+  // Create EVM Privy connector if enabled
+  const evmPrivyConnector = useMemo(() => {
+    if (!enableEvm) return null;
+
     return new PrivyConnector({
-      id: privyConnectorConfig.id || 'privy',
-      name: privyConnectorConfig.name || 'Privy',
-      logo: privyConnectorConfig.logo || '',
-      dappMetadata: privyConnectorConfig.dappMetadata || {
+      id: evmPrivyConnectorConfig.id || 'privy-evm',
+      name: evmPrivyConnectorConfig.name || 'Privy (EVM)',
+      logo: evmPrivyConnectorConfig.logo || '',
+      dappMetadata: evmPrivyConnectorConfig.dappMetadata || {
         name: 'Phoenix Wallet',
         url: typeof window !== 'undefined' ? window.location.host : 'localhost',
       },
     });
-  }, [privyConnectorConfig]);
+  }, [enableEvm, evmPrivyConnectorConfig]);
 
-  // Combine privy connector with existing connectors
+  // Filter chains by enabled types
+  const supportedChains = useMemo(() => {
+    return chainConfigs.filter((chain) => {
+      if (!enableEvm && chain.chainType === ChainType.EVM) return false;
+      if (!enableSolana && chain.chainType === ChainType.SOLANA) return false;
+      return true;
+    });
+  }, [chainConfigs, enableEvm, enableSolana]);
+
+  // Create Solana Privy connector if enabled
+  const solanaPrivyConnector = useMemo(() => {
+    if (!enableSolana) return null;
+
+    return new SolanaPrivyConnector({
+      id: solanaPrivyConnectorConfig.id || 'privy-solana',
+      name: solanaPrivyConnectorConfig.name || 'Privy (Solana)',
+      logo: solanaPrivyConnectorConfig.logo || '',
+      dappMetadata: solanaPrivyConnectorConfig.dappMetadata || {
+        name: 'Phoenix Wallet',
+        url: typeof window !== 'undefined' ? window.location.host : 'localhost',
+      },
+      chainId: solanaPrivyConnectorConfig.chainId || 'solana_mainnet_beta',
+      rpcUrl:
+        supportedChains.find((chain) => chain.id === solanaPrivyConnectorConfig.chainId)?.privateRpcUrl ||
+        'https://api.devnet.solana.com',
+    });
+  }, [enableSolana, solanaPrivyConnectorConfig, supportedChains]);
+
+  // Combine all connectors
   const allConnectors = useMemo(() => {
-    return [privyConnector, ...connectors];
-  }, [privyConnector, connectors]);
+    const privyConnectors = [
+      ...(evmPrivyConnector ? [evmPrivyConnector] : []),
+      ...(solanaPrivyConnector ? [solanaPrivyConnector] : []),
+    ];
+    return [...privyConnectors, ...connectors];
+  }, [evmPrivyConnector, solanaPrivyConnector, connectors]);
 
   return (
     <PrivyProvider
@@ -67,33 +123,61 @@ export const PhoenixPrivyProvider: React.FC<PhoenixPrivyProviderProps> = ({
         appearance: {
           theme: 'light',
           accentColor: '#676FFF',
-          logo: privyConnectorConfig.logo,
+          logo: evmPrivyConnectorConfig.logo || solanaPrivyConnectorConfig.logo,
           ...privyConfig.appearance,
         },
-        // Configure supported chains if not provided
+        // Configure supported chains based on enabled types
         supportedChains:
           privyConfig.supportedChains ||
-          chainConfigs.map((chain) => ({
-            id: parseInt(chain.id),
-            name: chain.name,
-            network: chain.name.toLowerCase(),
-            nativeCurrency: chain.nativeCurrency,
-            rpcUrls: {
-              default: {
-                http: [chain.publicRpcUrl],
+          supportedChains
+            .filter((chain) => chain.chainType === ChainType.EVM)
+            .map((chain) => ({
+              id: parseInt(chain.id),
+              name: chain.name,
+              network: chain.name.toLowerCase(),
+              nativeCurrency: chain.nativeCurrency,
+              rpcUrls: {
+                default: {
+                  http: [chain.publicRpcUrl],
+                },
               },
-            },
-            blockExplorers: {
-              default: {
-                name: `${chain.name} Explorer`,
-                url: chain.explorerUrl,
+              blockExplorers: {
+                default: {
+                  name: `${chain.name} Explorer`,
+                  url: chain.explorerUrl,
+                },
               },
-            },
-          })),
+            })),
+        // Configure embedded wallets for multi-chain
+        embeddedWallets: {
+          createOnLogin: 'users-without-wallets',
+          requireUserPasswordOnCreate: false,
+          ...privyConfig.embeddedWallets,
+        },
+        // Configure login methods
+        loginMethods: privyConfig.loginMethods || ['email', 'wallet', 'google'],
       }}
     >
-      <WalletProvider connectors={allConnectors} chainConfigs={chainConfigs} reconnect={reconnect}>
-        <PrivyBridge privyConnector={privyConnector}>{children}</PrivyBridge>
+      <WalletProvider connectors={allConnectors} chainConfigs={supportedChains} reconnect={reconnect}>
+        {/* EVM Bridge */}
+        {enableEvm && evmPrivyConnector && (
+          <PrivyBridge privyConnector={evmPrivyConnector}>
+            {/* Solana Bridge */}
+            {enableSolana && solanaPrivyConnector ? (
+              <SolanaPrivyBridge solanaPrivyConnector={solanaPrivyConnector}>{children}</SolanaPrivyBridge>
+            ) : (
+              children
+            )}
+          </PrivyBridge>
+        )}
+
+        {/* Solana Only */}
+        {!enableEvm && enableSolana && solanaPrivyConnector && (
+          <SolanaPrivyBridge solanaPrivyConnector={solanaPrivyConnector}>{children}</SolanaPrivyBridge>
+        )}
+
+        {/* No Privy chains enabled - should not happen but fallback */}
+        {!enableEvm && !enableSolana && children}
       </WalletProvider>
     </PrivyProvider>
   );

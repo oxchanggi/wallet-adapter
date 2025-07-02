@@ -1,10 +1,10 @@
 // Export main provider
-export { PhoenixPrivyProvider } from './PhoenixPrivyProvider';
-export type { PhoenixPrivyProviderProps } from './PhoenixPrivyProvider';
+export { EvmPhoenixPrivyProvider } from './EvmPhoenixPrivyProvider';
+export type { EvmPhoenixPrivyProviderProps } from './EvmPhoenixPrivyProvider';
 
 // Export enhanced provider (multi-chain support)
-export { EnhancedPhoenixPrivyProvider } from './EnhancedPhoenixPrivyProvider';
-export type { EnhancedPhoenixPrivyProviderProps } from './EnhancedPhoenixPrivyProvider';
+export { PhoenixPrivyProvider } from './PhoenixPrivyProvider';
+export type { PhoenixPrivyProviderProps } from './PhoenixPrivyProvider';
 
 // Export connector
 export { PrivyConnector } from './PrivyConnector';

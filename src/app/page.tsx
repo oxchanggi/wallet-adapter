@@ -1,6 +1,6 @@
 'use client';
 
-import { EnhancedPhoenixPrivyProvider } from '../phoenix-wallet';
+import { PhoenixPrivyProvider } from '../phoenix-wallet';
 import { SimpleWalletConnect } from './SimpleWalletConnect';
 import { defaultConnectors, chainConfigs } from './wallet-config';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -160,7 +160,7 @@ export default function Home() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <EnhancedPhoenixPrivyProvider
+      <PhoenixPrivyProvider
         appId="cm664kkkp01ytuwuce4l8y9s2" // Replace with your Privy App ID
         chainConfigs={chainConfigs}
         connectors={defaultConnectors}
@@ -204,11 +204,10 @@ export default function Home() {
             icon: '/phoenix-logo.png',
           },
           chainId: 'solana_devnet',
-          rpcUrl: 'https://api.devnet.solana.com',
         }}
       >
         <SimpleWalletConnect />
-      </EnhancedPhoenixPrivyProvider>
+      </PhoenixPrivyProvider>
     </ThemeProvider>
   );
 }
