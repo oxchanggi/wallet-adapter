@@ -53,6 +53,9 @@ export { useWalletConnectors, WalletProvider } from './contexts/WalletContext';
 export { useWallet } from './hooks/useWallet';
 export { useWalletConnectorEvent } from './hooks/useWalletConnectorEvent';
 
+// Privy Integration
+export * from './privy';
+
 // Types
 export { ConnectorStatus } from './connectors/types';
 export type { WalletContextState } from './connectors/types';
