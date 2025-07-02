@@ -7,9 +7,10 @@ export interface SolanaPrivyWallet {
   disconnect: () => Promise<void>;
   switchCluster?: (clusterId: string) => Promise<void>;
   // Add other Solana wallet properties as needed
-  signTransaction?: (transaction: unknown) => Promise<unknown>;
-  signAllTransactions?: (transactions: unknown[]) => Promise<unknown[]>;
+  signTransaction?: (transaction: any) => Promise<any>;
+  signAllTransactions?: (transactions: any[]) => Promise<any[]>;
   signMessage?: (message: Uint8Array) => Promise<{ signature: Uint8Array }>;
+  sendTransaction?: (transaction: any) => Promise<any>;
 }
 
 export interface SolanaPrivyContext {

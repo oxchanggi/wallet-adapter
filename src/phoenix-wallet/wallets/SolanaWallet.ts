@@ -25,9 +25,11 @@ export class SolanaWallet extends Wallet<SolanaTransaction, SolanaChain, SolanaC
     if ('signatures' in transaction && !('message' in transaction)) {
       signedTransaction = await this.walletClient.signTransaction(transaction);
 
+      // @ts-ignore
       return Buffer.from(signedTransaction.serialize()).toString('base64');
     } else if ('message' in transaction) {
       signedTransaction = await this.walletClient.signTransaction(transaction);
+      // @ts-ignore
       return Buffer.from(signedTransaction.serialize()).toString('base64');
     }
 
@@ -43,6 +45,7 @@ export class SolanaWallet extends Wallet<SolanaTransaction, SolanaChain, SolanaC
 
   async signAllTransactions(transactions: SolanaTransaction[]): Promise<string[]> {
     const signedTransactions = await this.walletClient.signAllTransactions(transactions);
+    // @ts-ignore
     return signedTransactions.map((transaction) => Buffer.from(transaction.serialize()).toString('base64'));
   }
 
