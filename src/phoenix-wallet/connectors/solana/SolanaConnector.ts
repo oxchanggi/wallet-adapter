@@ -80,8 +80,8 @@ export class SolanaConnector extends Connector {
     }
 
     return {
-      address: this.activeAddress,
-      chainId: this.cluster,
+      address: this.activeAddress ?? '',
+      chainId: this._chainId,
     };
   }
 
@@ -132,7 +132,7 @@ export class SolanaConnector extends Connector {
       console.log('Solana connector connect event', this.adapter.publicKey?.toBase58());
       if (this.activeAddress != this.adapter.publicKey?.toBase58() && this.adapter.publicKey?.toBase58()) {
         this.activeAddress = this.adapter.publicKey?.toBase58();
-        this.handleEventConnect(this.activeAddress, this._chainId);
+        this.handleEventConnect(this.activeAddress ?? '', this._chainId);
       }
     });
 

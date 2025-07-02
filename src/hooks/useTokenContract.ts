@@ -118,7 +118,7 @@ export function useTokenContract(options: TokenContractOptions): TokenContractSt
   }, [contractConfig]);
 
   return {
-    contract: contractRef.current,
+    contract: contractConfig.contract,
     error: contractConfig.error,
     getContract: () => contractRef.current,
   };
