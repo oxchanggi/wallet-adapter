@@ -25,7 +25,7 @@ export const useSolanaPrivyBridge = (solanaPrivyConnector: SolanaPrivyConnector)
     wallets: solanaHooks.wallets.map(
       (wallet): SolanaPrivyWallet => ({
         address: wallet.address,
-        chainId: wallet.chainId || solanaPrivyConnector.chainId,
+        chainId: (wallet as any).chainId || solanaPrivyConnector.chainId,
         walletClient: wallet,
         publicKey: wallet.address,
         disconnect: async () => {
@@ -46,7 +46,7 @@ export const useSolanaPrivyBridge = (solanaPrivyConnector: SolanaPrivyConnector)
         },
         signAllTransactions: async (transactions: SolanaTransaction[]) => {
           const rs = await wallet.signAllTransactions(transactions);
-          return rs;
+          return rs as any;
         },
         signMessage: async (message: any) => {
           const rs = await signMessage({ message });
@@ -81,7 +81,7 @@ export const useSolanaPrivyBridge = (solanaPrivyConnector: SolanaPrivyConnector)
     },
     createWallet: solanaHooks.createWallet
       ? async (): Promise<SolanaPrivyWallet> => {
-          const newWallet = await solanaHooks.createWallet!();
+          const newWallet: any = await solanaHooks.createWallet!();
           return {
             address: newWallet.address,
             chainId: newWallet.chainId || solanaPrivyConnector.chainId,
@@ -99,7 +99,7 @@ export const useSolanaPrivyBridge = (solanaPrivyConnector: SolanaPrivyConnector)
           };
         }
       : undefined,
-    connecting: solanaHooks.connecting,
+    connecting: (solanaHooks as any).connecting,
     connected: solanaHooks.wallets.length > 0,
   };
 
@@ -118,7 +118,7 @@ export const useSolanaPrivyBridge = (solanaPrivyConnector: SolanaPrivyConnector)
 
     // Handle new wallet connection
     if (previousWalletsCount.current < currentWalletsCount) {
-      const newWallet = solanaHooks.wallets[currentWalletsCount - 1];
+      const newWallet: any = solanaHooks.wallets[currentWalletsCount - 1];
       if (newWallet?.address) {
         solanaPrivyConnector.handleEventConnect(newWallet.address, newWallet.chainId || 'solana_mainnet_beta');
       }

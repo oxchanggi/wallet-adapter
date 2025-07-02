@@ -30,7 +30,7 @@ export const usePrivyBridge = (privyConnector: PrivyConnector) => {
           wallet: privyHooks.user.wallet
             ? {
                 address: privyHooks.user.wallet.address,
-                chainId: privyHooks.user.wallet.chainId,
+                chainId: (privyHooks.user.wallet as any).chainId,
                 walletClient: {
                   ...privyHooks?.user?.wallet,
                   signMessage: async (message: { account: string; message: string }) => {
@@ -76,10 +76,10 @@ export const usePrivyBridge = (privyConnector: PrivyConnector) => {
             : undefined,
         }
       : null,
-    login: privyHooks.login,
+    login: privyHooks.login as any,
     logout: privyHooks.logout,
-    connectWallet: privyHooks.connectWallet,
-    disconnectWallet: privyHooks.disconnectWallet,
+    connectWallet: privyHooks.connectWallet as any,
+    disconnectWallet: (privyHooks as any).disconnectWallet as any,
   };
 
   // Initialize the connector with Privy context
@@ -99,7 +99,7 @@ export const usePrivyBridge = (privyConnector: PrivyConnector) => {
     if (!previousAuthState.current && currentAuthState && privyHooks.user?.wallet) {
       privyConnector.handleEventConnect(
         privyHooks.user.wallet.address,
-        privyHooks.user.wallet.chainId?.toString() || '1'
+        (privyHooks.user.wallet as any).chainId?.toString() || '1'
       );
     }
 
@@ -127,10 +127,10 @@ export const usePrivyBridge = (privyConnector: PrivyConnector) => {
 
   // Handle chain changes
   useEffect(() => {
-    if (privyHooks.user?.wallet?.chainId) {
-      privyConnector.handleEventChainChanged(privyHooks.user.wallet.chainId.toString());
+    if ((privyHooks.user?.wallet as any)?.chainId) {
+      privyConnector.handleEventChainChanged((privyHooks.user?.wallet as any).chainId.toString());
     }
-  }, [privyHooks.user?.wallet?.chainId, privyConnector]);
+  }, [(privyHooks.user?.wallet as any)?.chainId, privyConnector]);
 
   return privyContext;
 };
